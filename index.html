@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a2744">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>GolfSync PRO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1a2744;--navy2:#243460;--gold:#c9a227;--red:#8b1f1f;--red2:#a82929;
+  --green:#1b5e20;--green2:#2e7d32;
+  --bg:#f4f6fa;--card:#fff;--border:#e0e4ee;--text:#1a1a2e;--muted:#6b7280;
+  --nl:#e8edf5;--rl:#f5e0e0;--gl:#e8f5e9;--gol:#fdf6e3
+}
+html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);overflow-x:hidden;min-height:100%}
+
+/* === MULTI-LANGUAGE SELECTOR === */
+.lang-wrap { position: absolute; top: 20px; right: 20px; z-index: 10000; }
+.lang-select { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; outline: none; backdrop-filter: blur(4px); cursor: pointer; }
+.lang-select option { color: var(--navy); }
+
+/* === SCREENS === */
+#view-login, #view-dashboard, #view-tour-hub, #app-tournament, #app-personal { display: none; }
+
+/* === LOGIN SCREEN === */
+.login-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--navy), #0a1128);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999; padding: 20px; color: #fff; text-align: center;
+}
+.login-logo { font-size: 60px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.login-title { font-size: 28px; font-weight: 800; margin-bottom: 5px; }
+.login-title span { color: var(--gold); }
+.login-subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 40px; }
+.login-btn-group { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; }
+.auth-btn { 
+  width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; 
+  display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; border: none;
+}
+.btn-google { background: #fff; color: #333; }
+.auth-btn:active { transform: scale(0.98); }
+.login-input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 14px; border-radius: 12px; width: 100%; outline: none; font-size: 14px; margin-bottom: 10px; }
+.login-input::placeholder { color: #94a3b8; }
+.login-input:focus { border-color: var(--gold); }
+.btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); font-weight: bold; }
+
+/* === DASHBOARD SCREEN REDESIGN === */
+.dash-wrap { padding: 30px 20px; max-width: 500px; margin: 0 auto; }
+.dash-profile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.dp-info { display: flex; align-items: center; gap: 12px; }
+.dp-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #f3c749); color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; box-shadow: 0 4px 10px rgba(201,162,39,0.3); }
+.dp-text { display: flex; flex-direction: column; }
+.dash-welcome { font-size: 20px; font-weight: 800; color: var(--navy); line-height: 1.2; }
+.dash-sub { font-size: 12px; color: var(--muted); margin-top: 2px;}
+.btn-logout-sm { background: var(--rl); color: var(--red); border: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;}
+.btn-logout-sm:active { transform: scale(0.9); }
+
+.dash-cards { display: flex; flex-direction: column; gap: 16px; }
+.dcard { 
+  background: #fff; border: none; border-radius: 20px; padding: 20px; 
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(26, 39, 68, 0.04);
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px;
+}
+.dcard:active { transform: scale(0.97); box-shadow: 0 4px 15px rgba(26, 39, 68, 0.04); }
+.dcard::after { content: '➔'; position: absolute; right: 20px; font-weight: bold; color: var(--navy); font-size: 18px; opacity: 0.2; transition: all 0.3s; transform: translateX(-5px); }
+.dcard:active::after { opacity: 1; transform: translateX(0); }
+
+.dc-icon-wrap { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.dc-tour { background: #fdf6e3; color: var(--gold); }
+.dc-pers { background: #e8f5e9; color: var(--green2); }
+
+.dc-content { display: flex; flex-direction: column; padding-right: 20px; }
+.dc-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.dc-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+/* === TOUR HUB CARDS === */
+.th-card {
+  background: #fff; border: 2px solid transparent; border-radius: 20px; padding: 24px;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+  box-shadow: 0 10px 30px rgba(26, 39, 68, 0.05); display: flex; flex-direction: column; align-items: center;
+}
+.th-card:active { transform: scale(0.96); }
+.th-card.host { border-color: rgba(26, 39, 68, 0.08); }
+.th-card.join { background: #fdf6e3; border-color: rgba(201, 162, 39, 0.3); }
+.th-icon { font-size: 40px; margin-bottom: 12px; }
+.th-title { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.th-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* === SHARED UI (HEADER) === */
+.hdr{background:var(--navy);color:#fff;padding:12px 16px 10px;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.hdr-back { background:rgba(255,255,255,0.1); border:none; color:#fff; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-right:12px; }
+.hdr-back:active { background:rgba(255,255,255,0.2); }
+.hdr-content { flex: 1; text-align: center; margin-right: 48px; }
+.hdr-event{font-size:9px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
+.hdr-title{font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px}
+.hdr-title span{color:var(--gold)}
+.pro-badge{font-size:9px;background:linear-gradient(135deg, #f6d365, #fda085);color:#000;padding:2px 6px;border-radius:6px;font-weight:800;letter-spacing:0.05em;display:none}
+.is-premium .pro-badge{display:inline-block}
+
+/* === TOURNAMENT SPECIFIC UI === */
+.live-indicator { background: #dcfce7; color: #166534; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 800; border-bottom: 1px solid #bbf7d0; display: none; }
+.live-indicator span { color: #15803d; letter-spacing: 0.05em; margin-left: 4px; }
+.hdr-sub{font-size:10px;opacity:.65;margin-top:1px}
+.hdr-format-badge{display:inline-block;margin-top:4px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85)}
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:58px;z-index:90;overflow-x:auto}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:11px 13px;font-size:12px;font-weight:500;color:var(--muted);border:none;background:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tab.active{color:var(--navy);border-bottom-color:var(--navy);font-weight:700}
+.hole-nav{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.nav-btn{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600;color:var(--navy);min-width:68px;text-align:center}
+.hole-label{flex:1;text-align:center}
+.hole-label-num{font-weight:800;font-size:16px;color:var(--navy)}
+.par-inline{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:5px}
+.par-inline-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.par-pills{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.par-pill{padding:4px 10px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:var(--bg);color:var(--muted)}
+.par-pill.active{background:var(--navy);color:#fff}
+.score-status-wrap{text-align:center;margin-top:4px;min-width:50px}
+.score-status-lbl{font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;display:inline-block}
+.ss-eagle{background:#1b5e2022;color:#1b5e20} .ss-birdie{background:#2e7d3222;color:#2e7d32} .ss-par{background:#1a274422;color:#1a2744}
+.ss-bogey{background:#f57f1722;color:#e65100} .ss-double{background:#c6282822;color:#c62828} .ss-triple{background:#8b1f1f22;color:#8b1f1f}
+.hgrid-wrap{padding:10px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.hgrid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}
+.hg{border:1px solid var(--border);background:var(--bg);border-radius:5px;padding:4px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:500;color:var(--muted);min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hg.active{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.hg.done{border-color:#aaa;background:#eef2ee;color:#444}
+.content{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.card{border-radius:12px;overflow:hidden;border:1.5px solid var(--border);background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-head{padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
+.card-head.navy{background:var(--navy)} .card-head.red{background:var(--red2)} .card-head.gold{background:linear-gradient(135deg,var(--navy),var(--navy2));border-bottom:2px solid var(--gold)} .card-head.gray{background:#f0f0f0;border-bottom:1px solid var(--border)}
+.card-head-label{color:#fff;font-size:12px;font-weight:700} .card-head.gray .card-head-label{color:var(--muted)}
+.card-head-badge{font-size:10px;color:rgba(255,255,255,.7)}
+.prow{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:#fff}
+.pavatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--bg);color:var(--navy)}
+.pinfo{flex:1;min-width:0} .pname{font-size:13px;font-weight:600} .pmeta{font-size:10px;color:var(--muted);margin-top:1px}
+.pmatch{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;display:inline-block;margin-top:3px}
+.pmatch.s{background:var(--nl);color:var(--navy)} .pmatch.o{background:var(--rl);color:var(--red)} .pmatch.h{background:#f0f0f0;color:#666}
+.sbox{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.sinput{width:50px;height:48px;text-align:center;font-size:20px;font-weight:700;border-radius:10px;border:2px solid var(--border);color:var(--text);background:#fff}
+.sinput:focus{outline:none;border-color:var(--navy);background:var(--nl)}
+
+/* MATCH & BOARD (TOURNAMENT) */
+.match-table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 20px;}
+.match-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; white-space: nowrap; }
+.match-table th, .match-table td { padding: 8px 4px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.match-table th { background: #fdfdfd; color: var(--navy); font-weight: 800; border-bottom: 2px solid var(--border); }
+.match-table td:first-child, .match-table th:first-child { position: sticky; left: 0; background: #fff; z-index: 10; text-align: left; box-shadow: 2px 0 5px rgba(0,0,0,0.03); }
+.match-table th:first-child { background: #fdfdfd; z-index: 11; }
+.m-chip { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin: 0 auto; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s;}
+.m-chip:active { transform: scale(0.9); }
+.m-chip.s { background: var(--nl); color: var(--navy); border-color: var(--navy); }
+.m-chip.o { background: var(--rl); color: var(--red); border-color: var(--red); }
+.m-chip.h { background: #f0f0f0; color: #666; border-color: #bbb; }
+.m-chip.e { background: transparent; }
+.bitem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:7px;border:1px solid var(--border);background:#fff}
+.bitem.r1{background:var(--gol);border-color:var(--gold)}
+.bmedal{font-size:24px;width:30px;text-align:center} .bnum{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted)}
+.binfo{flex:1} .bname{font-size:14px;font-weight:700} .bmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.bscore{text-align:right} .bgross{font-size:24px;font-weight:800;color:var(--navy);line-height:1} .bnet{font-size:11px;color:var(--muted)}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:4px} .badge.gold{background:var(--gol);color:#b8860b}
+.all-table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.all-table th{background:var(--bg);color:var(--muted);padding:8px;font-weight:600;text-align:center;border-bottom:1px solid var(--border)}
+.all-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border)}
+
+/* SETUP & FORMS */
+.setup-wrap{padding:14px 16px}
+.setup-section{margin-bottom:20px}
+.setup-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px; display:flex; justify-content:space-between; align-items:center}
+.setup-input{width:100%;border:none;font-size:14px;color:var(--text);background:none;padding:0}
+.setup-input:focus{outline:none}
+.setup-input:disabled{opacity:0.6;background:#f9fafb;color:#6b7280;cursor:not-allowed}
+.setup-row{padding:10px 14px;border-bottom:1px solid var(--border)}
+.setup-row-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.fmt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fmt-btn{padding:12px 10px;border-radius:10px;border:1.5px solid var(--border);background:#fff;cursor:pointer;text-align:center;transition:all .15s}
+.fmt-btn.active{border-color:var(--navy);background:var(--nl)}
+.fmt-btn.disabled{opacity:0.5; cursor:not-allowed; background:#f9fafb}
+.fmt-btn-icon{font-size:22px;margin-bottom:4px} .fmt-btn-label{font-size:12px;font-weight:700;color:var(--text)} .fmt-btn-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.player-setup-card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px}
+.player-edit-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:#fff}
+.pedit-num{width:24px;height:24px;border-radius:50%;background:var(--nl);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.pedit-name{flex:2;min-width:0;border:none;font-size:13px;font-weight:600;color:var(--text);background:none;padding:0}
+.pedit-name:focus{outline:none;border-bottom:1px solid var(--navy)}
+.pedit-name:disabled{background:transparent; opacity:0.8;}
+.pedit-hc{width:44px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:12px;font-weight:600;text-align:center;background:#fff}
+.pedit-hc:focus{outline:none;border-color:var(--navy)}
+.pedit-cart{width:54px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:11px;background:#fff;color:var(--text)}
+.pedit-cart:focus{outline:none;border-color:var(--navy)}
+.pedit-link{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.pedit-link.active{background:var(--green2);color:#fff;border-color:var(--green2)}
+.pedit-del{width:28px;height:28px;border-radius:7px;border:none;background:var(--rl);color:var(--red);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.add-player-btn{width:100%;padding:11px;border-radius:10px;border:1.5px dashed var(--border);background:#fff;color:var(--navy);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:4px}
+.premium-btn{width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg, var(--gold), #f3c749);color:#000;font-size:13px;font-weight:700;cursor:pointer;border:none;margin-bottom:4px;box-shadow:0 2px 8px rgba(201,162,39,0.4)}
+.save-btn{width:100%;padding:14px;border-radius:12px;background:var(--navy);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;}
+.danger-btn{width:100%;padding:14px;border-radius:12px;background:var(--red2);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:8px}
+.share-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;background:#25D366;color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px}
+
+.player-setup-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff}
+.team-toggle{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.ttbtn{padding:5px 10px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:var(--bg);color:var(--muted)}
+.ttbtn.a.active{background:var(--navy);color:#fff} .ttbtn.b.active{background:var(--red2);color:#fff}
+.champ-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.champ-radio.active{border-color:var(--gold);background:var(--gold)}
+.champ-radio.disabled{opacity:0.5; cursor:not-allowed}
+
+/* === PERSONAL SPECIFIC UI === */
+.pers-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.pstat-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+.pstat-val { font-size: 32px; font-weight: 800; color: var(--navy); line-height: 1; }
+.pstat-lbl { font-size: 11px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.hist-item { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.hist-item-left { flex: 1; }
+.hist-date { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.hist-venue { font-size: 14px; font-weight: 700; color: var(--text); }
+.hist-item-right { text-align: right; }
+.hist-gross { font-size: 20px; font-weight: 800; color: var(--navy); line-height: 1; }
+.hist-par { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.add-round-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--green2); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(46,125,50,0.3); }
+.add-drive-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(26,39,68,0.3); }
+.add-round-btn:active, .add-drive-btn:active { transform: scale(0.98); }
+
+/* === MODALS === */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);padding:20px}
+.modal-box{background:#fff;border-radius:16px;width:100%;max-width:320px;padding:24px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.3);animation:modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+@keyframes modalIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-icon{font-size:40px;margin-bottom:12px}
+.modal-title{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.modal-text{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px}
+.modal-btn{flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.modal-btn-cancel{background:var(--bg);color:var(--muted)} .modal-btn-confirm{background:var(--navy);color:#fff} .modal-btn-danger{background:var(--red2);color:#fff} .modal-btn-gold{background:linear-gradient(135deg, var(--gold), #f3c749);color:#000}
+
+/* MISC */
+.empty-state{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:8px}
+.pb{padding-bottom:32px}
+.wrap{padding:12px 16px}
+.sync-bar{position:fixed;top:0;left:0;width:100%;padding:4px;font-size:10px;font-weight:700;text-align:center;z-index:1000;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff}
+.sync-bar.connecting{background:#e65100} .sync-bar.connected{background:#1b5e20} .sync-bar.error{background:#c62828}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}
+</style>
+</head>
+<body id="appBody">
+
+<!-- 1. LOGIN SCREEN -->
+<div id="view-login" class="login-screen">
+  
+  <div class="lang-wrap">
+    <select id="langSelector" class="lang-select" onchange="window.changeLang(this.value)">
+      <option value="default">🌐 ID/EN (Mix)</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="ko">🇰🇷 한국어</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="jv">ꦮꦺꦴ Basa Jawa</option>
+    </select>
+  </div>
+
+  <div class="login-logo">⛳</div>
+  <div class="login-title">GOLF <span>SYNC</span></div>
+  <div class="login-subtitle" data-i18n="app_desc">Aplikasi Pencatat Skor Golf Profesional</div>
+  
+  <div id="loginBtnGroup" class="login-btn-group">
+    <button class="auth-btn btn-google" onclick="window.triggerLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l3.68-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      <span data-i18n="login_google">Lanjutkan dengan Google</span>
+    </button>
+    
+    <div style="margin: 5px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <div style="height: 1px; background: rgba(255,255,255,0.2); flex: 1;"></div>
+        <span style="font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.05em;" data-i18n="or_login">ATAU EMAIL</span>
+        <div style="height: 1px; background: rgba(255,255,255,0.2); flex: 1;"></div>
+    </div>
+
+    <input type="email" id="authEmail" class="login-input" placeholder="Alamat Email" autocomplete="email">
+    <input type="password" id="authPassword" class="login-input" placeholder="Kata Sandi" autocomplete="current-password" style="margin-bottom: 20px;">
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="auth-btn" style="background: var(--navy2); color: white; flex: 1;" onclick="window.triggerEmailLogin()" data-i18n="btn_login_email">Masuk</button>
+        <button class="auth-btn btn-outline" style="flex: 1;" onclick="window.triggerEmailRegister()" data-i18n="btn_register_email">Daftar</button>
+    </div>
+  </div>
+  <div id="loginLoading" style="display:none; margin:20px 0; font-weight:bold; color:var(--gold)">⏳ <span data-i18n="connecting">Menghubungkan Database...</span></div>
+</div>
+
+<!-- 2. DASHBOARD SCREEN REDESIGN -->
+<div id="view-dashboard">
+  <div class="dash-wrap">
+    
+    <!-- Profil & Header -->
+    <div class="dash-profile">
+        <div class="dp-info">
+            <div class="dp-avatar" id="dashAvatar">G</div>
+            <div class="dp-text">
+                <div class="dash-welcome" id="dashWelcome" data-i18n="welcome">Selamat Datang!</div>
+                <div class="dash-sub" id="dashEmail" data-i18n="select_mode">Pilih mode permainan Anda hari ini</div>
+            </div>
+        </div>
+        <button class="btn-logout-sm" onclick="window.triggerLogout()" title="Keluar Akun">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+    </div>
+    
+    <h3 style="font-size:12px; font-weight:800; color:var(--muted); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px;">Menu Utama</h3>
+    
+    <div class="dash-cards">
+      <div class="dcard" onclick="window.openMode('tournament')">
+        <div class="dc-icon-wrap dc-tour">⛳</div>
+        <div class="dc-content">
+            <div class="dc-title" data-i18n="tour_mode">Turnamen & Main Bareng</div>
+            <div class="dc-desc" data-i18n="tour_desc">Buat turnamen baru (Host) atau Gabung ke turnamen teman via Live Sync.</div>
+        </div>
+      </div>
+
+      <div class="dcard" onclick="window.openMode('personal')">
+        <div class="dc-icon-wrap dc-pers">📈</div>
+        <div class="dc-content">
+            <div class="dc-title" data-i18n="personal_mode">Personal Achievement</div>
+            <div class="dc-desc" data-i18n="personal_desc">Catat riwayat skor, progres latihan driving, dan kalkulasi Handicap Index.</div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- 2.5. TOUR HUB (NEW OR JOIN) REDESIGN -->
+<div id="view-tour-hub">
+  <div class="hdr">
+    <button class="hdr-back" onclick="window.goToDashboard()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="hdr-content">
+      <div class="hdr-title">MODE <span>TURNAMEN</span></div>
+    </div>
+  </div>
+  
+  <div class="wrap" style="margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+    <div class="th-card host" onclick="window.tourHubNew()">
+      <div class="th-icon">✨</div>
+      <div class="th-title">New Game (Host)</div>
+      <div class="th-desc">Buat turnamen baru. Atur pemain, format match, dan bagikan Kode Room ke teman Anda.</div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0; color: var(--muted); font-weight: 800; font-size: 11px; letter-spacing: 1px;">ATAU</div>
+
+    <div class="th-card join" onclick="window.tourHubJoinPrompt()">
+      <div class="th-icon">🤝</div>
+      <div class="th-title" style="color: #b8860b;">Gabung Turnamen</div>
+      <div class="th-desc">Masuk menggunakan Kode Room untuk mencatat skor bersama secara Real-Time.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. PERSONAL APP -->
+<div id="app-personal">
+  <div class="hdr">
+    <button class="hdr-back" onclick="window.goToDashboard()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="hdr-content">
+      <div class="hdr-event" data-i18n="indiv_mode">📈 Mode Individu</div>
+      <div class="hdr-title"><span data-i18n="personal_title_1">PERSONAL</span> &nbsp;<span data-i18n="personal_title_2">ACHIEVEMENT</span></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="pers-stats-grid">
+      <div class="pstat-card" style="grid-column: span 2; border-color: var(--gold); background: var(--gol);">
+        <div class="pstat-val" id="persHC" style="font-size: 48px;">0.0</div>
+        <div class="pstat-lbl" style="color: #b8860b;" data-i18n="est_hc">Est. Handicap Index</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="persTotalRounds">0</div>
+        <div class="pstat-lbl" data-i18n="total_rounds">Total Ronde</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="persBestScore">—</div>
+        <div class="pstat-lbl" data-i18n="best_score">Skor Terbaik</div>
+      </div>
+    </div>
+
+    <div class="pers-stats-grid" style="margin-top:-10px;">
+      <div class="pstat-card">
+        <div class="pstat-val" id="persTotalDrive">0</div>
+        <div class="pstat-lbl" data-i18n="drv_sessions">Sesi Driving</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="persTotalBalls">0</div>
+        <div class="pstat-lbl" data-i18n="total_balls">Total Bola</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom: 20px;">
+      <button class="add-round-btn" style="flex:1" onclick="window.openAddRoundModal()">
+        <span data-i18n="add_round">⛳ Catat Ronde</span>
+      </button>
+      <button class="add-drive-btn" style="flex:1" onclick="window.openAddDriveModal()">
+        <span data-i18n="add_drive">🏌️ Catat Driving</span>
+      </button>
+    </div>
+
+    <div class="setup-label" data-i18n="hist_course">Riwayat Turun Lapangan</div>
+    <div id="personalHistoryList" style="margin-bottom:24px;"></div>
+
+    <div class="setup-label" data-i18n="hist_drive">Riwayat Latihan Driving</div>
+    <div id="personalDrivingList"></div>
+    <div class="pb"></div>
+  </div>
+</div>
+
+<!-- 4. TOURNAMENT APP -->
+<div id="app-tournament">
+  <div class="sync-bar connecting" id="syncBar">
+    <div class="sync-dot"></div>
+    <span id="syncTxt" data-i18n="connecting">Menghubungkan Database...</span>
+  </div>
+
+  <div class="hdr">
+    <button class="hdr-back" onclick="window.showScreen('view-tour-hub')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="hdr-content">
+      <div class="hdr-event" id="hdrEvent">⛳ GolfSync</div>
+      <div class="hdr-title" id="hdrTitle">GOLF <span>SYNC</span> <span class="pro-badge">PRO</span></div>
+      <div class="hdr-sub" id="hdrSub">—</div>
+      <div class="hdr-format-badge" id="hdrFmt">—</div>
+    </div>
+  </div>
+  
+  <div id="liveIndicator" class="live-indicator">
+    🟢 LIVE ROOM KODE: <span id="liveCodeDisplay"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" id="tab-setup" onclick="window.switchTourTab('setup')" data-i18n="tab_setup">⚙️ Setup</button>
+    <button class="tab active" id="tab-score" onclick="window.switchTourTab('score')" data-i18n="tab_score">⛳ Score</button>
+    <button class="tab" id="tab-match" onclick="window.switchTourTab('match')" data-i18n="tab_match">📊 Match</button>
+    <button class="tab" id="tab-board" onclick="window.switchTourTab('board')" data-i18n="tab_board">🏆 Board</button>
+  </div>
+
+  <!-- SCORE ENTRY -->
+  <div id="view-score">
+    <div class="hole-nav">
+      <button class="nav-btn" onclick="window.changeHole(-1)" id="btnPrev" data-i18n="prev">◀ Prev</button>
+      <div class="hole-label">
+        <div class="hole-label-num" id="holeLabelNum">Hole 1</div>
+        <div class="par-inline">
+          <span class="par-inline-lbl" data-i18n="par_label">Par</span>
+          <div class="par-pills">
+            <button class="par-pill" id="pp3" onclick="window.setParInline(3)">3</button>
+            <button class="par-pill active" id="pp4" onclick="window.setParInline(4)">4</button>
+            <button class="par-pill" id="pp5" onclick="window.setParInline(5)">5</button>
+          </div>
+        </div>
+      </div>
+      <button class="nav-btn" onclick="window.changeHole(1)" id="btnNext" data-i18n="next">Next ▶</button>
+    </div>
+    <div class="hgrid-wrap"><div class="hgrid" id="hgrid"></div></div>
+    <div class="content" id="scoreContent"></div>
+    <div class="pb"></div>
+  </div>
+
+  <!-- MATCH -->
+  <div id="view-match" style="display:none">
+    <div class="wrap">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="matchLegend"></div>
+      <div id="matchContent"></div>
+      <div class="pb"></div>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+  <div id="view-board" style="display:none">
+    <div class="wrap">
+      <button class="share-btn" onclick="window.shareWA()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.554 4.104 1.535 5.824L.057 23.25a.75.75 0 00.916.933l5.616-1.476A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.713 9.713 0 01-4.953-1.356l-.355-.211-3.683.967.984-3.592-.232-.37A9.713 9.713 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+        <span data-i18n="share_wa">Share ke WhatsApp</span>
+      </button>
+      <div id="boardContent"></div>
+      <div class="sect-title" data-i18n="all_players" style="margin-top:16px; font-weight:800; color:var(--navy); margin-bottom:8px">Semua Player</div>
+      <div style="background:#fff;border-radius:12px;border:1px solid var(--border);overflow:auto">
+        <table class="all-table" id="allTable"></table>
+      </div>
+      <div class="pb"></div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="view-setup" style="display:none">
+    <div class="setup-wrap">
+      
+      <div class="setup-section" id="guestNotice" style="display:none; background:#fdf6e3; padding:14px; border-radius:12px; border:1px solid var(--gold)">
+        <div class="setup-label" style="color:#b8860b">🛡️ MODE GUEST (GABUNG)</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">Anda hanya dapat menautkan akun dengan mengklik tombol 👤 di bawah. Perubahan Format dan Nama Turnamen hanya bisa dilakukan oleh Host.</div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label" data-i18n="event_info">📋 Info Event</div>
+        <div style="background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden">
+          <div class="setup-row" id="cfgDateRow">
+            <div class="setup-row-label" data-i18n="event_date">Tanggal Turnamen</div>
+            <input id="cfgDate" class="setup-input" type="date" style="font-weight:700; color:var(--navy);">
+          </div>
+          <div class="setup-row">
+            <div class="setup-row-label" data-i18n="event_name">Nama Event</div>
+            <input id="cfgName" class="setup-input" type="text" data-i18n-ph="event_name_ph" placeholder="Contoh: Sunday Morning Golf" style="font-size:14px;font-weight:600" oninput="window.markDirty()">
+          </div>
+          <div class="setup-row">
+            <div class="setup-row-label" data-i18n="venue">Venue / Lapangan</div>
+            <input id="cfgVenue" class="setup-input" type="text" data-i18n-ph="venue_ph" placeholder="Contoh: Palm Hill Golf Course" oninput="window.markDirty()">
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label" data-i18n="players">👤 Players</div>
+        <div style="font-size:10px; color:var(--muted); margin-bottom:8px; line-height:1.4" data-i18n="player_link_desc">Klik ikon 👤 untuk menghubungkan skor pemain tersebut ke <b>Personal Achievement</b> Anda secara otomatis.</div>
+        <div class="player-setup-card" id="playerEditList"></div>
+        
+        <div id="hostPlayerControls">
+          <button class="add-player-btn" onclick="window.addPlayer()" data-i18n="add_player">＋ Tambah Player</button>
+          <button class="premium-btn" id="btnProUpgrade" style="display:none" onclick="window.showPaywall()" data-i18n="pro_upgrade">👑 Upgrade PRO (Unlimited Player)</button>
+        </div>
+      </div>
+
+      <div class="setup-section" id="hostFormatControls">
+        <div class="setup-label" data-i18n="format">🏆 Format Match</div>
+        <div class="fmt-grid">
+          <button class="fmt-btn" id="fmt-one_vs_all" onclick="window.setFormat('one_vs_all')">
+            <div class="fmt-btn-icon">👑</div>
+            <div class="fmt-btn-label" data-i18n="fmt_1vall">One vs All</div>
+            <div class="fmt-btn-sub" data-i18n="fmt_1vall_desc">1 player vs semua</div>
+          </button>
+          <button class="fmt-btn" id="fmt-team" onclick="window.setFormat('team')">
+            <div class="fmt-btn-icon">🤝</div>
+            <div class="fmt-btn-label" data-i18n="fmt_team">Team Match</div>
+            <div class="fmt-btn-sub" data-i18n="fmt_team_desc">Tim vs Tim</div>
+          </button>
+          <button class="fmt-btn" id="fmt-pairs" onclick="window.setFormat('pairs')">
+            <div class="fmt-btn-icon">⚔️</div>
+            <div class="fmt-btn-label" data-i18n="fmt_pairs">Custom Pairs</div>
+          </button>
+          <button class="fmt-btn" id="fmt-strokeplay" onclick="window.setFormat('strokeplay')">
+            <div class="fmt-btn-icon">📋</div>
+            <div class="fmt-btn-label" data-i18n="fmt_strokeplay">Strokeplay</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="setup-section" id="fmtConfig"></div>
+
+      <button class="save-btn" onclick="window.nextToOverview()">
+        <span>LANJUT KE OVERVIEW ➔</span>
+      </button>
+      
+      <div id="hostDangerControls" style="display:flex; gap:8px; margin-top:8px">
+        <button class="danger-btn" style="margin-top:0; flex:1" onclick="window.promptResetScores()" data-i18n="btn_del_score">HAPUS SKOR</button>
+        <button class="danger-btn" style="margin-top:0; flex:1; background:#444" onclick="window.promptResetEvent()" data-i18n="btn_reset">RESET</button>
+      </div>
+      <div class="pb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM MODAL -->
+<div id="sysModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-icon" id="modIcon">ℹ️</div>
+    <div class="modal-title" id="modTitle">Info</div>
+    <div class="modal-text" id="modText">Message goes here.</div>
+    <div class="modal-actions" id="modActions"></div>
+  </div>
+</div>
+
+<!-- CUSTOM FORM MODAL (ADD ROUND) -->
+<div id="formModal" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="padding: 20px;">
+    <div class="modal-title" style="margin-bottom:16px;" data-i18n="form_rnd_title">Catat Ronde Baru</div>
+    
+    <div style="text-align:left; margin-bottom:12px;">
+      <div class="setup-row-label" data-i18n="form_date">Tanggal</div>
+      <input id="addRndDate" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px;" type="date">
+    </div>
+    
+    <div style="text-align:left; margin-bottom:12px;">
+      <div class="setup-row-label" data-i18n="venue">Lapangan / Venue</div>
+      <input id="addRndVenue" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px;" type="text">
+    </div>
+    
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <div style="flex:1; text-align:left;">
+        <div class="setup-row-label" data-i18n="form_par">Total Par Lap.</div>
+        <input id="addRndPar" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px; font-weight:bold" type="number" value="72">
+      </div>
+      <div style="flex:1; text-align:left;">
+        <div class="setup-row-label" data-i18n="form_gross">Skor Gross</div>
+        <input id="addRndGross" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px; font-weight:bold" type="number">
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('formModal').style.display='none'" data-i18n="cancel">Batal</button>
+      <button class="modal-btn modal-btn-confirm" onclick="window.saveNewRound()" data-i18n="save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM FORM MODAL (ADD DRIVING) -->
+<div id="driveModal" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="padding: 20px;">
+    <div class="modal-title" style="margin-bottom:16px;" data-i18n="form_drv_title">Catat Sesi Driving</div>
+    
+    <div style="text-align:left; margin-bottom:12px;">
+      <div class="setup-row-label" data-i18n="form_date">Tanggal</div>
+      <input id="addDrvDate" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px;" type="date">
+    </div>
+    
+    <div style="text-align:left; margin-bottom:12px;">
+      <div class="setup-row-label" data-i18n="form_range">Tempat / Range</div>
+      <input id="addDrvVenue" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px;" type="text">
+    </div>
+    
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <div style="flex:1; text-align:left;">
+        <div class="setup-row-label" data-i18n="form_dur">Durasi (Menit)</div>
+        <input id="addDrvDuration" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px; font-weight:bold" type="number" placeholder="60">
+      </div>
+      <div style="flex:1; text-align:left;">
+        <div class="setup-row-label" data-i18n="total_balls">Total Bola</div>
+        <input id="addDrvBalls" class="setup-input" style="background:var(--bg); padding:10px; border-radius:8px; font-weight:bold" type="number" placeholder="100">
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('driveModal').style.display='none'" data-i18n="cancel">Batal</button>
+      <button class="modal-btn modal-btn-confirm" onclick="window.saveNewDrive()" data-i18n="save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE INTEGRATION SCRIPT -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// =========================================================================
+// 🔴 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
+// =========================================================================
+const myFirebaseConfig = {
+  apiKey: "AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M",
+  authDomain: "golfsync-e8ac5.firebaseapp.com",
+  projectId: "golfsync-e8ac5",
+  storageBucket: "golfsync-e8ac5.firebasestorage.app",
+  messagingSenderId: "604105263757",
+  appId: "1:604105263757:web:6d28dfb6d3b276c264b0c4",
+  measurementId: "G-EW77HZ2MHY"
+};
+
+const firebaseConfig = (myFirebaseConfig.apiKey !== "API_KEY_ANDA") ? myFirebaseConfig : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = (myFirebaseConfig.apiKey !== "API_KEY_ANDA") ? myFirebaseConfig.projectId : (typeof __app_id !== 'undefined' ? __app_id : 'default-golf-app-id');
+
+// ====== i18n / MULTI-LANGUAGE SYSTEM ======
+const i18n = {
+  default: {
+    app_desc: "Aplikasi Pencatat Skor Golf Profesional", login_google: "Lanjutkan dengan Google", welcome: "Selamat Datang!",
+    select_mode: "Pilih mode permainan Anda hari ini", personal_mode: "Personal Achievement",
+    personal_desc: "Catat riwayat skor, progres latihan driving, dan kalkulasi Handicap Index.",
+    tour_mode: "Turnamen & Main Bareng", tour_desc: "Buat turnamen baru (Host) atau Gabung ke turnamen teman via Live Sync.",
+    logout: "🚪 Keluar Akun", indiv_mode: "📈 Mode Individu", personal_title_1: "PERSONAL", personal_title_2: "ACHIEVEMENT",
+    est_hc: "Est. Handicap Index", total_rounds: "Total Ronde", best_score: "Skor Terbaik", drv_sessions: "Sesi Driving", total_balls: "Total Bola",
+    add_round: "⛳ Catat Ronde", add_drive: "🏌️ Catat Driving", hist_course: "Riwayat Turun Lapangan", hist_drive: "Riwayat Latihan Driving",
+    connecting: "Menghubungkan Database...", tab_score: "⛳ Score", tab_match: "📊 Match", tab_board: "🏆 Board", tab_setup: "⚙️ Setup",
+    prev: "◀ Prev", next: "Next ▶", par_label: "Par", share_wa: "Share ke WhatsApp", all_players: "Semua Player",
+    date_title: "📅 TANGGAL SEBAGAI PENENTU EVENT", date_desc: "Ganti tanggal di bawah untuk <b>membuat event baru</b> pada hari tersebut. Jika tanggal yang dipilih pernah dimainkan sebelumnya, maka data pemain dan skor lama akan <b>otomatis dimuat</b> kembali.",
+    event_info: "📋 Info Event", event_date: "Tanggal Turnamen", event_name: "Nama Event", event_name_ph: "Contoh: Sunday Morning Golf",
+    venue: "Venue / Lapangan", venue_ph: "Contoh: Palm Hill Golf Course", players: "👤 Players",
+    player_link_desc: "Klik ikon 👤 untuk menghubungkan skor pemain tersebut ke <b>Personal Achievement</b> Anda secara otomatis.",
+    add_player: "＋ Tambah Player", pro_upgrade: "👑 Upgrade PRO (Unlimited Player)", format: "🏆 Format Match",
+    fmt_1vall: "One vs All", fmt_1vall_desc: "1 player vs semua", fmt_team: "Team Match", fmt_team_desc: "Tim vs Tim", fmt_pairs: "Custom Pairs", fmt_strokeplay: "Strokeplay",
+    btn_save: "SIMPAN", btn_del_score: "HAPUS SKOR", btn_reset: "RESET", form_rnd_title: "Catat Ronde Baru", form_date: "Tanggal", form_par: "Total Par Lap.",
+    form_gross: "Skor Gross", cancel: "Batal", save: "Simpan", form_drv_title: "Catat Sesi Driving", form_range: "Tempat / Range", form_dur: "Durasi (Menit)",
+    msg_empty_course: "Belum ada riwayat main di lapangan.", msg_empty_drv: "Belum ada riwayat latihan driving.",
+    msg_empty_player: "Belum ada pemain.<br>Turnamen belum diatur oleh Host.", msg_no_data: "Belum ada data untuk dibagikan.", msg_success: "Sukses",
+    ph_name: "Nama", ph_cart: "Grup", lbl_team_list: "Daftar Tim", lbl_assign_team: "Assign Player ke Tim", btn_add_team: "+ Tambah Tim",
+    lbl_champion: "Pilih Champion", lbl_custom_pairs: "Custom Pairs", btn_add_pair: "＋ Tambah Pair",
+    or_login: "ATAU EMAIL", btn_login_email: "Masuk", btn_register_email: "Daftar Baru"
+  }
+};
+
+window.currentLang = localStorage.getItem('golfsync_lang') || 'default';
+if (document.getElementById('langSelector')) document.getElementById('langSelector').value = window.currentLang;
+
+window.t = (key) => { return i18n['default'][key] || key; };
+window.changeLang = (lang) => {
+    window.currentLang = lang;
+    localStorage.setItem('golfsync_lang', lang);
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = window.t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = window.t(el.getAttribute('data-i18n-ph')); });
+};
+
+const TEAM_COLORS = ['#1a2744', '#a82929', '#2e7d32', '#c9a227', '#6d28d9', '#c2410c', '#0ea5e9', '#0d9488'];
+
+// === GLOBAL STATE ===
+let currentUser = null;
+let unsubSnapshot = null;
+let liveUnsubSnapshot = null;
+let isPremium = false;
+
+window.isGuest = false; // TRUE jika bergabung, FALSE jika buat baru
+window.currentLiveTourId = null; 
+window.currentDate = new Date().toISOString().split('T')[0];
+
+window.players = [];
+window.config = {};
+window.scores = {};
+
+let currentHole=1;
+let curTab="setup"; // Default ke Setup
+let cfgFormat="strokeplay";
+let cfgDirty=false;
+
+// PERSONAL STATE
+window.personalData = {
+  handicap: 0,
+  history: [], 
+  driving: [],
+  linkedPlayers: {} 
+};
+
+window.getBlankConfig = (dateStr) => {
+    return {
+        name: "Turnamen Golf", date: dateStr, venue: "", format: "strokeplay", champion: null,
+        teamNames: {A: "Team A", B: "Team B"}, teamsList: null, teams: {}, pairs: [], par: Array(18).fill(4)
+    };
+};
+
+// ==== LOGIKA HUB (NEW & JOIN) ====
+window.tourHubNew = () => {
+    // Deteksi jika berjalan di web browser (bukan aplikasi native Android/iOS via Capacitor)
+    // Jika diakses via HTTP/HTTPS dan tidak ada objek Capacitor, maka itu adalah Browser.
+    const isBrowser = (window.location.protocol === 'https:' || window.location.protocol === 'http:') && typeof window.Capacitor === 'undefined';
+    
+    if (isBrowser) {
+        window.sysAlert(
+            "Fitur Membuat Turnamen (Host) dan Menambah Player hanya tersedia di <b>Aplikasi GolfSync (Android/iOS)</b>.<br><br>Pada versi Web Browser ini, Anda hanya dapat <b>Gabung Turnamen</b> menggunakan Kode Room yang diberikan oleh Host.", 
+            "Fitur Khusus Aplikasi", 
+            "📱"
+        );
+        return; // Hentikan proses pembuatan turnamen
+    }
+
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    window.currentLiveTourId = code;
+    window.isGuest = false;
+    
+    window.config = window.getBlankConfig(window.currentDate);
+    window.config.name = "Event: " + code;
+    window.players = [{id:1, name:"Player 1", hc:0, cart:"-", role:""}];
+    window.scores = {1: Array(18).fill(null)};
+    
+    setSyncStatus("connecting", "Membuka Room...");
+    
+    // PERBAIKAN PATH: Menggunakan standar public/data sesuai aturan keamanan
+    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', code);
+    
+    setDoc(liveDocRef, { config: window.config, players: window.players, scores: window.scores }).then(() => {
+        window.listenToLiveRoom();
+        window.showScreen('app-tournament');
+        window.switchTourTab('setup');
+    }).catch((e) => {
+        console.error(e);
+        window.sysAlert("Error Permissions Firebase: " + e.message, "Akses Ditolak", "❌");
+        setSyncStatus("error", "Error Database");
+    });
+};
+
+window.tourHubJoinPrompt = () => {
+    window.sysConfirm(
+        `<input type="text" id="joinCodeInput" placeholder="Masukkan Kode (Misal: ABCD)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; text-transform:uppercase; text-align:center; font-size:18px; font-weight:bold; color:#000; outline:none;">`,
+        () => {
+            const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+            if(!code) return;
+            window.tourHubJoin(code);
+        },
+        "Gabung Turnamen", "🤝", "modal-btn-confirm"
+    );
+};
+
+window.tourHubJoin = (code) => {
+    window.currentLiveTourId = code;
+    window.isGuest = true;
+    window.listenToLiveRoom(true);
+};
+
+window.listenToLiveRoom = (isJoining = false) => {
+    if(liveUnsubSnapshot) liveUnsubSnapshot();
+    
+    // PERBAIKAN PATH
+    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', window.currentLiveTourId);
+    
+    setSyncStatus("connecting", "Menghubungkan...");
+    
+    liveUnsubSnapshot = onSnapshot(liveDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            window.config = data.config || window.getBlankConfig(window.currentDate);
+            window.players = data.players || [];
+            window.scores = data.scores || {};
+            cfgFormat = window.config.format || "strokeplay";
+            
+            if (isJoining && document.getElementById('app-tournament').style.display !== 'block') {
+                window.showScreen('app-tournament');
+                window.switchTourTab('setup');
+            }
+            if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
+            setSyncStatus("connected", "🟢 Live OK");
+        } else {
+            if (isJoining) {
+                window.sysAlert("Turnamen tidak ditemukan! Periksa kembali kodenya.", "Error", "❌");
+                window.currentLiveTourId = null;
+                if(liveUnsubSnapshot) liveUnsubSnapshot();
+                window.showScreen('view-tour-hub');
+            }
+        }
+    }, (error) => {
+        console.error("Live Sync Error:", error);
+        window.sysAlert("Gagal terhubung ke database. " + error.message, "Akses Ditolak", "❌");
+    });
+};
+
+
+// ==== LOGIKA LINK PERSONAL PLAYER ====
+window.getLinkedPlayerId = () => {
+    if(!window.currentLiveTourId) return null;
+    if(!window.personalData.linkedPlayers) window.personalData.linkedPlayers = {};
+    return window.personalData.linkedPlayers[window.currentLiveTourId];
+};
+
+window.toggleLinkedPlayer = async (pid) => {
+    if(!window.currentLiveTourId) return;
+    if(!window.personalData.linkedPlayers) window.personalData.linkedPlayers = {};
+    
+    if (window.personalData.linkedPlayers[window.currentLiveTourId] === pid) {
+        delete window.personalData.linkedPlayers[window.currentLiveTourId];
+        window.personalData.history = window.personalData.history.filter(h => h.tourId !== window.currentLiveTourId);
+    } else {
+        window.personalData.linkedPlayers[window.currentLiveTourId] = pid;
+    }
+    
+    window.recalculateHandicap();
+    window.renderPlayerEditList();
+    
+    if (currentUser) {
+        window.updateLinkedHistory();
+        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+    }
+};
+
+window.updatePlayerName = (idx, val) => { window.players[idx].name = val; window.markDirty(); };
+window.updatePlayerHC = (idx, val) => { window.players[idx].hc = parseInt(val) || 0; window.markDirty(); };
+window.updatePlayerCart = (idx, val) => { window.players[idx].cart = val; window.markDirty(); };
+
+window.updateTeamList = (idx, val) => { 
+    window.config.teamsList[idx].name = val; 
+    window.markDirty(); 
+    document.querySelectorAll('.team-assign-select').forEach(sel => {
+        if(sel.options[idx]) sel.options[idx].textContent = val || ("Team " + (idx + 1));
+    });
+};
+window.addTeamList = () => {
+    if(window.config.teamsList.length >= TEAM_COLORS.length) { window.sysAlert("Batas tim tercapai", "Limit", "⚠️"); return; }
+    const newId = "T" + Date.now();
+    window.config.teamsList.push({ id: newId, name: "Team " + (window.config.teamsList.length + 1), color: TEAM_COLORS[window.config.teamsList.length] });
+    window.renderFmtConfig(); window.markDirty();
+};
+window.removeTeamList = (idx) => {
+    window.sysConfirm("Remove team?", () => {
+        const removedId = window.config.teamsList[idx].id;
+        window.config.teamsList.splice(idx, 1);
+        const defaultTeamId = window.config.teamsList[0].id;
+        window.players.forEach(p => { if(window.config.teams[p.id] === removedId) window.config.teams[p.id] = defaultTeamId; });
+        window.renderFmtConfig(); window.markDirty();
+    }, "Remove", "🗑️", "modal-btn-danger");
+};
+window.setPlayerTeam = (pid, teamId) => { window.config.teams[pid] = teamId; window.markDirty(); };
+window.updatePair = (idx, prop, val) => { window.config.pairs[idx][prop] = parseInt(val); window.markDirty(); };
+window.removePair = (idx) => { window.config.pairs.splice(idx, 1); window.renderFmtConfig(); window.markDirty(); };
+
+// ===== AUTHENTICATION LOGIC =====
+window.toggleLoginLoading = (isLoading) => {
+    const btnGroup = document.getElementById('loginBtnGroup');
+    const loader = document.getElementById('loginLoading');
+    if(btnGroup) btnGroup.style.display = isLoading ? 'none' : 'flex';
+    if(loader) loader.style.display = isLoading ? 'block' : 'none';
+};
+
+window.triggerLogin = async () => {
+    window.toggleLoginLoading(true);
+    
+    try {
+        const isLocalFile = window.location.protocol === 'file:';
+        const isIframe = window.self !== window.top;
+        const isSandbox = window.location.hostname.includes('usercontent.goog');
+
+        if (isLocalFile || isIframe || isSandbox) {
+            await signInAnonymously(auth); return;
+        }
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+    } catch (e) {
+        window.toggleLoginLoading(false);
+        if (e.code === 'auth/unauthorized-domain') {
+            try {
+                window.toggleLoginLoading(true);
+                await signInAnonymously(auth);
+            } catch(err) { window.toggleLoginLoading(false); }
+        } else if (e.code !== 'auth/popup-closed-by-user') {
+            window.sysAlert("Gagal login dengan Google!<br><br>Pesan Error: " + e.message, "Login Gagal", "⚠️");
+        }
+    }
+};
+
+window.triggerEmailLogin = async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if(!email || !password) { window.sysAlert("Email dan Kata Sandi wajib diisi!", "Info", "⚠️"); return; }
+    
+    window.toggleLoginLoading(true);
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+        window.toggleLoginLoading(false);
+        let msg = e.message;
+        if(e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') msg = "Email atau Kata Sandi salah.";
+        window.sysAlert("Gagal masuk: " + msg, "Login Gagal", "❌");
+    }
+};
+
+window.triggerEmailRegister = async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if(!email || !password) { window.sysAlert("Email dan Kata Sandi wajib diisi!", "Info", "⚠️"); return; }
+    if(password.length < 6) { window.sysAlert("Kata Sandi minimal 6 karakter!", "Info", "⚠️"); return; }
+    
+    window.toggleLoginLoading(true);
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        window.sysAlert("Akun berhasil dibuat! Anda sekarang otomatis masuk.", "Sukses", "✅");
+    } catch (e) {
+        window.toggleLoginLoading(false);
+        let msg = e.message;
+        if(e.code === 'auth/email-already-in-use') msg = "Email ini sudah terdaftar. Silakan gunakan tombol Masuk.";
+        window.sysAlert("Gagal mendaftar: " + msg, "Daftar Gagal", "❌");
+    }
+};
+
+window.triggerLogout = async () => {
+    window.sysConfirm("Keluar / Logout dari akun Anda?", async () => {
+        window.currentLiveTourId = null;
+        if(liveUnsubSnapshot) { liveUnsubSnapshot(); liveUnsubSnapshot = null; }
+        await signOut(auth);
+    }, window.t('logout'), "🚪", "modal-btn-danger");
+};
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        document.body.classList.add('on-login-or-dash');
+        window.showScreen('view-dashboard');
+        
+        const welcomeEl = document.getElementById("dashWelcome");
+        const emailEl = document.getElementById("dashEmail");
+        const avatarEl = document.getElementById("dashAvatar");
+        
+        if (welcomeEl) {
+            let name = "Golfer";
+            if (user.displayName) {
+                name = user.displayName.split(' ')[0];
+            } else if (user.email) {
+                name = user.email.split('@')[0];
+            }
+            welcomeEl.textContent = `Halo, ${name}!`;
+            
+            if(avatarEl) {
+                avatarEl.textContent = name.charAt(0).toUpperCase();
+            }
+        }
+        if (emailEl) emailEl.textContent = user.email || 'Mode Anonim';
+
+        loadUserData(user.uid);
+    } else {
+        currentUser = null;
+        document.body.classList.add('on-login-or-dash');
+        
+        window.toggleLoginLoading(false);
+        const emailInput = document.getElementById('authEmail');
+        const passInput = document.getElementById('authPassword');
+        if(emailInput) emailInput.value = '';
+        if(passInput) passInput.value = '';
+        
+        window.showScreen('view-login');
+        if(unsubSnapshot) unsubSnapshot();
+        if(liveUnsubSnapshot) liveUnsubSnapshot();
+    }
+});
+
+window.showScreen = (screenId) => {
+  ['view-login', 'view-dashboard', 'view-tour-hub', 'app-tournament', 'app-personal'].forEach(id => {
+    document.getElementById(id).style.display = (id === screenId) ? 'block' : 'none';
+  });
+  if (screenId === 'view-login' || screenId === 'view-dashboard') document.getElementById(screenId).style.display = 'flex';
+};
+
+window.goToDashboard = () => { 
+    if(window.currentLiveTourId && liveUnsubSnapshot) {
+        liveUnsubSnapshot(); liveUnsubSnapshot = null;
+        window.currentLiveTourId = null;
+    }
+    window.showScreen('view-dashboard'); 
+};
+
+window.openMode = (mode) => {
+  if (mode === 'personal') {
+    window.showScreen('app-personal');
+    window.renderPersonalApp();
+  } else if (mode === 'tournament') {
+    window.showScreen('view-tour-hub');
+  }
+};
+
+// ===== CLOUD FIRESTORE LOGIC =====
+function applyPrivateTourData(dateKey) {
+    if (window.tournaments[dateKey]) {
+        window.config = window.tournaments[dateKey].config;
+        window.players = window.tournaments[dateKey].players;
+        window.scores = window.tournaments[dateKey].scores || {};
+    } else {
+        window.config = window.getBlankConfig(dateKey);
+        window.players = [];
+        window.scores = {};
+        window.tournaments[dateKey] = { config: window.config, players: window.players, scores: window.scores };
+    }
+    cfgFormat = window.config.format || "strokeplay";
+    if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
+}
+
+function loadUserData(uid) {
+    setSyncStatus("connecting", window.t('connecting'));
+    const docRef = doc(db, 'artifacts', appId, 'users', uid, 'golf_data', 'main'); 
+    
+    unsubSnapshot = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            isPremium = data.isPremium || false;
+            window.personalData = data.personal || { handicap: 0, history: [], driving: [], linkedPlayers: {} };
+            if (!window.personalData.linkedPlayers) window.personalData.linkedPlayers = {};
+            if (isPremium) document.getElementById("appBody").classList.add("is-premium");
+            
+            window.renderPersonalApp();
+            setSyncStatus("connected", "🟢 Sync OK");
+        } else {
+            window.personalData = { handicap: 0, history: [], driving: [], linkedPlayers: {} };
+        }
+    }, (error) => { setSyncStatus("error", "🔴 DB Error"); });
+}
+
+window.updateLinkedHistory = () => {
+    if(!window.currentLiveTourId) return;
+    const linkedPid = window.getLinkedPlayerId();
+    
+    if (linkedPid && window.scores[linkedPid]) {
+        const gross = window.getGross(linkedPid);
+        if (gross > 0) {
+            const totalPar = window.config.par.reduce((a,b)=>a+b,0);
+            const existingIdx = window.personalData.history.findIndex(h => h.tourId === window.currentLiveTourId);
+            const eventName = window.config.name || window.config.venue || ("Live: " + window.currentLiveTourId);
+            
+            if (existingIdx >= 0) {
+                window.personalData.history[existingIdx].gross = gross;
+                window.personalData.history[existingIdx].par = totalPar;
+                window.personalData.history[existingIdx].venue = eventName;
+                window.personalData.history[existingIdx].date = window.config.date || window.currentDate;
+            } else {
+                window.personalData.history.push({
+                    id: Date.now(),
+                    tourId: window.currentLiveTourId,
+                    date: window.config.date || window.currentDate,
+                    venue: eventName,
+                    par: totalPar,
+                    gross: gross
+                });
+            }
+        } else {
+            window.personalData.history = window.personalData.history.filter(h => h.tourId !== window.currentLiveTourId);
+        }
+    } else {
+        window.personalData.history = window.personalData.history.filter(h => h.tourId !== window.currentLiveTourId);
+    }
+    window.recalculateHandicap();
+};
+
+window.saveLiveUpdate = async (updates) => {
+     if(!window.currentLiveTourId) return;
+     // PERBAIKAN PATH
+     const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', window.currentLiveTourId);
+     try {
+         await setDoc(liveDocRef, updates, { merge: true });
+     } catch (e) {
+         console.error("Live Update Error:", e);
+     }
+};
+
+window.nextToOverview = async () => {
+    if(!window.isGuest) {
+        window.config.name=document.getElementById("cfgName").value||window.config.name;
+        window.config.venue=document.getElementById("cfgVenue").value||window.config.venue;
+        window.config.format=cfgFormat;
+        await window.saveLiveUpdate({ config: window.config, players: window.players });
+    }
+    window.switchTourTab('score');
+};
+
+
+// ===== PERSONAL APP LOGIC =====
+window.renderPersonalApp = () => {
+    const totalRounds = window.personalData.history.length;
+    let bestScore = "—";
+    if (totalRounds > 0) {
+        const validScores = window.personalData.history.map(r => r.gross).filter(g => g > 0);
+        if (validScores.length > 0) bestScore = Math.min(...validScores);
+    }
+    document.getElementById("persTotalRounds").textContent = totalRounds;
+    document.getElementById("persBestScore").textContent = bestScore;
+    document.getElementById("persHC").textContent = (window.personalData.handicap || 0).toFixed(1);
+    
+    const totalDrives = window.personalData.driving ? window.personalData.driving.length : 0;
+    let totalBalls = 0;
+    if (totalDrives > 0) {
+        totalBalls = window.personalData.driving.reduce((sum, d) => sum + (parseInt(d.balls)||0), 0);
+    }
+    document.getElementById("persTotalDrive").textContent = totalDrives;
+    document.getElementById("persTotalBalls").textContent = totalBalls;
+    
+    const listEl = document.getElementById("personalHistoryList");
+    if (totalRounds === 0) {
+        listEl.innerHTML = `<div class="empty-state" style="padding:16px;">${window.t('msg_empty_course')}</div>`;
+    } else {
+        const sorted = [...window.personalData.history].sort((a,b) => {
+            if (a.date === b.date) return b.id - a.id;
+            return new Date(b.date) - new Date(a.date);
+        });
+        listEl.innerHTML = sorted.map(r => {
+            const diff = r.gross - r.par;
+            const diffStr = diff > 0 ? `+${diff}` : (diff === 0 ? 'E' : diff);
+            const color = diff > 0 ? 'var(--red)' : 'var(--green2)';
+            
+            return `
+            <div class="hist-item" ${r.tourId ? `style="border-left: 4px solid var(--gold)"` : ''}>
+              <div class="hist-item-left">
+                <div class="hist-date">📅 ${r.date || '-'} ${r.tourId ? '🏆' : ''}</div>
+                <div class="hist-venue">⛳ ${r.venue || '-'}</div>
+              </div>
+              <div class="hist-item-right">
+                <div class="hist-gross">${r.gross}</div>
+                <div class="hist-par">Par ${r.par} (<span style="color:${color};font-weight:700">${diffStr}</span>)</div>
+              </div>
+              <button class="pedit-del" style="margin-left:12px; width:26px; height:26px;" onclick="window.deletePersonalRound(${r.id})">×</button>
+            </div>
+            `;
+        }).join('');
+    }
+
+    const drvListEl = document.getElementById("personalDrivingList");
+    if (totalDrives === 0) {
+        drvListEl.innerHTML = `<div class="empty-state" style="padding:16px;">${window.t('msg_empty_drv')}</div>`;
+    } else {
+        const sortedDrv = [...window.personalData.driving].sort((a,b) => b.id - a.id);
+        drvListEl.innerHTML = sortedDrv.map(d => `
+        <div class="hist-item">
+          <div class="hist-item-left">
+            <div class="hist-date">📅 ${d.date || '-'}</div>
+            <div class="hist-venue">🏌️ ${d.venue || '-'}</div>
+          </div>
+          <div class="hist-item-right">
+            <div class="hist-gross" style="color:var(--text); font-size:18px;">${d.balls} <span style="font-size:11px;font-weight:normal">bola</span></div>
+            <div class="hist-par">⏱️ ${d.duration} m</div>
+          </div>
+          <button class="pedit-del" style="margin-left:12px; width:26px; height:26px; background:var(--rl); color:var(--red)" onclick="window.deleteDrive(${d.id})">×</button>
+        </div>
+        `).join('');
+    }
+}
+
+window.openAddRoundModal = () => {
+    document.getElementById('addRndDate').valueAsDate = new Date(); 
+    document.getElementById('addRndVenue').value = '';
+    document.getElementById('addRndGross').value = '';
+    document.getElementById('formModal').style.display = 'flex';
+}
+window.saveNewRound = async () => {
+    const date = document.getElementById('addRndDate').value;
+    const venue = document.getElementById('addRndVenue').value || "Free Play";
+    const par = parseInt(document.getElementById('addRndPar').value) || 72;
+    const gross = parseInt(document.getElementById('addRndGross').value);
+    
+    if(!gross || gross < 18) { alert("Invalid score!"); return; }
+    
+    window.personalData.history.push({ id: Date.now(), date, venue, par, gross });
+    window.recalculateHandicap();
+    
+    document.getElementById('formModal').style.display = 'none';
+    window.renderPersonalApp();
+    
+    if(currentUser) {
+        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+    }
+}
+window.deletePersonalRound = (id) => {
+    window.sysConfirm("Delete?", async () => {
+        const roundToDelete = window.personalData.history.find(r => r.id === id);
+        if (roundToDelete && roundToDelete.tourId) {
+            delete window.personalData.linkedPlayers[roundToDelete.tourId];
+            window.renderPlayerEditList();
+        }
+        window.personalData.history = window.personalData.history.filter(r => r.id !== id);
+        window.recalculateHandicap();
+        window.renderPersonalApp();
+        
+        if(currentUser) {
+            const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+            await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+        }
+    }, "Delete", "🗑️", "modal-btn-danger");
+}
+
+window.openAddDriveModal = () => {
+    document.getElementById('addDrvDate').valueAsDate = new Date();
+    document.getElementById('addDrvVenue').value = '';
+    document.getElementById('addDrvDuration').value = '';
+    document.getElementById('addDrvBalls').value = '';
+    document.getElementById('driveModal').style.display = 'flex';
+}
+window.saveNewDrive = async () => {
+    const date = document.getElementById('addDrvDate').value;
+    const venue = document.getElementById('addDrvVenue').value || "Driving Range";
+    const duration = parseInt(document.getElementById('addDrvDuration').value) || 0;
+    const balls = parseInt(document.getElementById('addDrvBalls').value) || 0;
+    
+    if(balls < 1) { return; }
+    
+    if(!window.personalData.driving) window.personalData.driving = [];
+    window.personalData.driving.push({ id: Date.now(), date, venue, duration, balls });
+    
+    document.getElementById('driveModal').style.display = 'none';
+    window.renderPersonalApp();
+    
+    if(currentUser) {
+        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+    }
+}
+window.deleteDrive = (id) => {
+    window.sysConfirm("Delete?", async () => {
+        window.personalData.driving = window.personalData.driving.filter(r => r.id !== id);
+        window.renderPersonalApp();
+        if(currentUser) {
+            const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+            await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+        }
+    });
+}
+window.recalculateHandicap = () => {
+    const recent20 = [...window.personalData.history].sort((a,b) => {
+        if (a.date === b.date) return b.id - a.id;
+        return new Date(b.date) - new Date(a.date);
+    }).slice(0, 20);
+    if (recent20.length < 3) { window.personalData.handicap = 0; return; }
+    const diffs = recent20.map(r => r.gross - r.par).sort((a,b) => a - b);
+    const countToUse = Math.min(8, Math.max(1, Math.ceil(diffs.length * 0.4))); 
+    const bestDiffs = diffs.slice(0, countToUse);
+    const avgDiff = bestDiffs.reduce((a,b)=>a+b, 0) / countToUse;
+    window.personalData.handicap = Math.max(0, Math.round(avgDiff * 0.96 * 10) / 10);
+}
+
+
+// ===== TOURNAMENT APP LOGIC =====
+window.getPar = (hi) => { return (window.config.par&&window.config.par[hi])||4; }
+window.getGross = (id) => { return window.scores[id] ? window.scores[id].reduce((a,b)=>(b?a+b:a),0) : 0; }
+window.getNet = (id) => { const g=window.getGross(id); return g?g-window.players.find(p=>p.id===id).hc:null; }
+window.getToPar = (id) => {
+  let tp=0; let scored=false;
+  if(!window.scores[id]) return null;
+  for(let h=0;h<18;h++){ const s=window.scores[id][h]; if(s){tp+=(s-window.getPar(h));scored=true;} }
+  return scored?tp:null;
+}
+function scoreRelative(score,hi){
+  if(!score) return "";
+  const d=score-window.getPar(hi);
+  if(d===0) return `<span style="color:var(--green2)">E</span>`;
+  if(d<0) return `<span style="color:var(--green2);font-weight:700">${d}</span>`;
+  return `<span style="color:var(--red)">+${d}</span>`;
+}
+function setSyncStatus(state,msg){
+  const b=document.getElementById("syncBar");
+  if(b) {
+      b.className="sync-bar "+state;
+      document.getElementById("syncTxt").textContent=msg;
+  }
+}
+
+window.changeHole = (dir) => {const n=currentHole+dir;if(n>=1&&n<=18){currentHole=n;window.renderTour();}}
+window.jumpHole = (h) => {currentHole=h;if(curTab!=="score")window.switchTourTab("score");else window.renderTour();}
+window.switchTourTab = (t) => {
+  curTab=t;
+  ["score","match","board","setup"].forEach(id=>{
+    const el = document.getElementById("view-"+id);
+    if(el) el.style.display = id===t?"block":"none";
+    const tabEl = document.getElementById("tab-"+id);
+    if(tabEl) tabEl.className="tab"+(id===t?" active":"");
+  });
+  window.renderTour();
+}
+
+window.updateScore = async (pid,hi,val) => {
+  const v=val===""?null:Math.max(1,parseInt(val)||1);
+  
+  // Pastikan array skor untuk pemain ini sudah ada sebelum diisi
+  if (!window.scores) window.scores = {};
+  if (!window.scores[pid]) window.scores[pid] = Array(18).fill(null);
+  
+  window.scores[pid][hi]=v;
+  window.renderTour();
+  window.markDirty();
+  
+  await window.saveLiveUpdate({ scores: window.scores });
+  
+  if (currentUser) {
+      window.updateLinkedHistory();
+      const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+      await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+  }
+}
+
+function getScoreStatus(score, hi){
+  if(!score) return null;
+  const d=score-window.getPar(hi);
+  if(d<=-2) return {lbl:"Eagle 🦅",cls:"ss-eagle",rel:d};
+  if(d===-1) return {lbl:"Birdie 🐦",cls:"ss-birdie",rel:d};
+  if(d===0)  return {lbl:"Par ✓",cls:"ss-par",rel:0};
+  if(d===1)  return {lbl:"Bogey",cls:"ss-bogey",rel:"+1"};
+  if(d===2)  return {lbl:"Double",cls:"ss-double",rel:"+2"};
+  return {lbl:`+${d} Bogey`,cls:"ss-triple",rel:"+"+d};
+}
+function getHoleResult1v1(id1,id2,hi){
+  const s1=window.scores[id1]?.[hi],s2=window.scores[id2]?.[hi];
+  if(!s1||!s2) return null;
+  if(s1<s2) return "p1";if(s2<s1) return "p2";return "halve";
+}
+function getMatchStatus1v1(id1,id2){
+  let w1=0,w2=0;
+  for(let h=0;h<18;h++){const r=getHoleResult1v1(id1,id2,h);if(r==="p1")w1++;else if(r==="p2")w2++;}
+  const played=Array.from({length:18},(_,i)=>getHoleResult1v1(id1,id2,i)).filter(Boolean).length;
+  return{w1,w2,diff:w1-w2,played,halves:played-w1-w2};
+}
+window.getTeamHoleResultDynamic = (hi) => {
+    let bestScore = Infinity;
+    let bestTeamIds = [];
+    window.config.teamsList.forEach(team => {
+        const tPlayers = window.players.filter(p => (window.config.teams[p.id] || window.config.teamsList[0].id) === team.id);
+        const tScores = tPlayers.map(p => window.scores[p.id]?.[hi]).filter(s => s && s > 0);
+        if (tScores.length > 0) {
+            const min = Math.min(...tScores);
+            if (min < bestScore) {
+                bestScore = min;
+                bestTeamIds = [team.id];
+            } else if (min === bestScore) {
+                bestTeamIds.push(team.id);
+            }
+        }
+    });
+    if (bestScore === Infinity || bestTeamIds.length === 0) return null;
+    if (bestTeamIds.length > 1) return 'halve';
+    return bestTeamIds[0];
+};
+
+function updateTourHeader(){
+  const els = document.querySelectorAll("#hdrEvent");
+  els.forEach(el => el.textContent="⛳ GolfSync");
+  
+  const els2 = document.querySelectorAll("#hdrSub");
+  els2.forEach(el => el.textContent=`${window.config.venue||"-"} · ${window.config.date||"-"}`);
+  
+  const els3 = document.querySelectorAll("#hdrFmt");
+  els3.forEach(el => {
+    if(window.config.format === 'one_vs_all') el.textContent = window.t('fmt_1vall');
+    else if(window.config.format === 'team') el.textContent = window.t('fmt_team');
+    else if(window.config.format === 'pairs') el.textContent = window.t('fmt_pairs');
+    else el.textContent = window.t('fmt_strokeplay');
+  });
+  
+  const ind = document.getElementById('liveIndicator');
+  if (window.currentLiveTourId) {
+      ind.style.display = 'block';
+      document.getElementById('liveCodeDisplay').innerText = window.currentLiveTourId;
+  } else {
+      ind.style.display = 'none';
+  }
+}
+
+window.renderTour = () => {
+  updateTourHeader();
+  if(curTab==="score") renderScore();
+  else if(curTab==="match") renderMatch();
+  else if(curTab==="board") renderBoard();
+  else if(curTab==="setup") renderSetupUI();
+}
+
+window.setParInline = async (val) => {
+  if(window.isGuest) { window.sysAlert("Hanya Host yang bisa ubah Par."); return; }
+  if(!window.config.par) window.config.par=Array(18).fill(4);
+  window.config.par[currentHole-1]=val;
+  window.renderTour();
+  window.markDirty();
+  await window.saveLiveUpdate({ config: window.config });
+}
+
+function updateParPills(){
+  const par=window.getPar(currentHole-1);
+  [3,4,5].forEach(v=>{
+    const el=document.getElementById("pp"+v);
+    if(el) el.className="par-pill"+(par===v?" active":"");
+  });
+}
+
+function renderScore(){
+  const hi=currentHole-1;
+  const par=window.getPar(hi);
+  const lbl = document.getElementById("holeLabelNum");
+  if(lbl) lbl.textContent=`Hole ${currentHole} / 18`;
+  updateParPills();
+
+  const hg=document.getElementById("hgrid");
+  if(!hg) return;
+  hg.innerHTML="";
+  for(let h=1;h<=18;h++){
+    const done=window.players.some(p=>window.scores[p.id]?.[h-1]>0);
+    const btn=document.createElement("button");
+    btn.className="hg"+(h===currentHole?" active":done?" done":"");
+    btn.innerHTML=`<span class="hg-num">${h}</span><span class="hg-par">P${window.getPar(h-1)}</span>`;
+    btn.onclick=()=>{currentHole=h;window.renderTour();};
+    hg.appendChild(btn);
+  }
+
+  const fmt=window.config.format;
+  const sc=document.getElementById("scoreContent");
+  sc.innerHTML="";
+
+  if (window.players.length === 0) {
+      sc.innerHTML = `<div class="empty-state"><div class="empty-icon">🏌️</div>${window.t('msg_empty_player')}</div>`;
+      return;
+  }
+
+  if(fmt==="one_vs_all" && window.config.champion){
+    const champ=window.players.find(p=>p.id===window.config.champion)||window.players[0];
+    const opps=window.players.filter(p=>p.id!==champ.id);
+    const champSc=window.scores[champ.id]?.[hi];
+    const champSt=getScoreStatus(champSc,hi);
+    const cCard=document.createElement("div");
+    cCard.className="card";
+    cCard.innerHTML=`
+      <div class="card-head gold">
+        <span class="card-head-label">👑 ${champ.name.toUpperCase()} (CHAMPION)</span>
+        <span class="card-head-badge">HC ${champ.hc} · Tot: ${window.getGross(champ.id)||"—"}</span>
+      </div>
+      <div style="padding:12px 14px;background:#fff;display:flex;align-items:center;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:13px;color:var(--muted)">Hole ${currentHole} <b style="color:var(--navy)">Par ${par}</b></div>
+          ${champSt?`<span class="score-status-lbl ${champSt.cls}" style="margin-top:4px;display:inline-block">${champSt.lbl}</span>`:"<div style='font-size:11px;color:var(--muted);margin-top:4px'>-</div>"}
+        </div>
+        <div style="text-align:center">
+          <input class="sinput g" type="number" inputmode="numeric" pattern="[0-9]*"
+            min="1" max="20" value="${champSc||""}" placeholder="—"
+            oninput="window.updateScore(${champ.id},${hi},this.value)" />
+        </div>
+      </div>`;
+    sc.appendChild(cCard);
+    
+    if (opps.length > 0) {
+        const oppCard=document.createElement("div");
+        oppCard.className="card";
+        oppCard.innerHTML=`<div class="card-head gray"><span class="card-head-label">Opponents</span></div>`;
+        const oppBody=document.createElement("div");
+        opps.forEach(p=>oppBody.appendChild(makePlayerRow(p,hi,champ.id)));
+        oppCard.appendChild(oppBody);
+        sc.appendChild(oppCard);
+    }
+  }
+  else if(fmt==="team"){
+    window.config.teamsList.forEach(team => {
+      const tPlayers=window.players.filter(p=>(window.config.teams[p.id]||window.config.teamsList[0].id)===team.id);
+      if(tPlayers.length === 0) return;
+      const tScores=tPlayers.map(p=>window.scores[p.id]?.[hi]).filter(s=>s&&s>0);
+      const best=tScores.length?Math.min(...tScores):"—";
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`<div class="card-head" style="background:${team.color}; color:#fff;"><span class="card-head-label">👥 ${team.name}</span><span class="card-head-badge">Best: ${best} ${best!=="—"?scoreRelative(best,hi):""}</span></div>`;
+      const body=document.createElement("div");
+      tPlayers.forEach(p=>body.appendChild(makePlayerRow(p,hi,null)));
+      card.appendChild(body);
+      sc.appendChild(card);
+    });
+  }
+  else if(fmt==="pairs" && window.config.pairs && window.config.pairs.length > 0){
+    window.config.pairs.forEach(pair=>{
+      const p1=window.players.find(p=>p.id===pair.p1),p2=window.players.find(p=>p.id===pair.p2);
+      if(!p1||!p2) return;
+      const ms=getMatchStatus1v1(p1.id,p2.id);
+      const stTxt=ms.diff===0?"Square":ms.diff>0?`${p1.name} ${ms.diff}UP`:`${p2.name} ${Math.abs(ms.diff)}UP`;
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`<div class="card-head gray"><span class="card-head-label" style="color:var(--text)">${p1.name} vs ${p2.name}</span><span style="font-size:10px;color:var(--muted)">${stTxt}</span></div>`;
+      const body=document.createElement("div");
+      [p1,p2].forEach(p=>body.appendChild(makePlayerRow(p,hi,null)));
+      card.appendChild(body);
+      sc.appendChild(card);
+    });
+  }
+  else{
+    const card=document.createElement("div");
+    card.className="card";
+    card.innerHTML=`<div class="card-head navy"><span class="card-head-label">⛳ Leaderboard (Strokeplay)</span></div>`;
+    const body=document.createElement("div");
+    window.players.forEach(p=>body.appendChild(makePlayerRow(p,hi,null)));
+    card.appendChild(body);
+    sc.appendChild(card);
+  }
+}
+
+function makePlayerRow(p,hi,champId){
+  const sc=window.scores[p.id]?.[hi];
+  const tot=window.getGross(p.id);
+  const tp=window.getToPar(p.id);
+  const tpStr=tp===null?"":tp===0?" (E)":tp>0?` (+${tp})`+"":(` (${tp})`);
+  const st=getScoreStatus(sc,hi);
+  let statusHtml="";
+  if(champId){
+    const ms=getMatchStatus1v1(champId,p.id);
+    const stColor=ms.diff>0?"var(--navy)":ms.diff<0?"var(--red)":"var(--muted)";
+    const stTxt=ms.diff===0?"Square":ms.diff>0?`Ch. ${ms.diff}UP`:`${p.name} ${Math.abs(ms.diff)}UP`;
+    const r=getHoleResult1v1(champId,p.id,hi);
+    const badge=r?`<span class="pmatch ${r==="p1"?"s":r==="p2"?"o":"h"}">${r==="p1"?"👑 Win":r==="p2"?p.name+" Win":"Halve"}</span>`:"";
+    statusHtml=`<div class="pmeta" style="color:${stColor};font-weight:600">${stTxt}</div>${badge}`;
+  }
+  const div=document.createElement("div");
+  div.className="prow";
+  div.innerHTML=`
+    <div class="pavatar">${p.id}</div>
+    <div class="pinfo">
+      <div class="pname">${p.name}${p.role?` <span style="font-size:10px;color:var(--gold);font-weight:700">${p.role}</span>`:""}</div>
+      <div class="pmeta">HC ${p.hc} · ${p.cart}${tot>0?` · <b>${tot}</b>${tpStr}`:""}</div>
+      ${statusHtml}
+    </div>
+    <div class="sbox" style="flex-direction:column;align-items:center;gap:3px">
+      <input class="sinput" type="number" inputmode="numeric" pattern="[0-9]*"
+        min="1" max="20" value="${sc||""}" placeholder="—"
+        oninput="window.updateScore(${p.id},${hi},this.value)" />
+      <div class="score-status-wrap">
+        ${st?`<span class="score-status-lbl ${st.cls}">${st.lbl}</span>`:`<span style="font-size:10px;color:#ddd">—</span>`}
+      </div>
+    </div>`;
+  return div;
+}
+
+function renderMatch(){
+  const mc=document.getElementById("matchContent");
+  const leg=document.getElementById("matchLegend");
+  mc.innerHTML="";
+  
+  if (window.players.length === 0) {
+      mc.innerHTML = `<div class="empty-state"><div class="empty-icon">🏌️</div>${window.t('msg_empty_player')}</div>`;
+      return;
+  }
+
+  const fmt=window.config.format;
+  if(fmt==="strokeplay"){
+    leg.textContent="-";
+    mc.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div>Format Strokeplay tidak ada match.</div>`;
+    return;
+  }
+
+  let matches = [];
+
+  if(fmt==="one_vs_all" && window.config.champion){
+    const champ=window.players.find(p=>p.id===window.config.champion)||window.players[0];
+    leg.textContent=`👑 = ${champ.name.split(' ')[0]} Win  ·  O = Opp Win  ·  = = Halve`;
+    
+    window.players.filter(p=>p.id!==champ.id).forEach(p=>{
+      const ms=getMatchStatus1v1(champ.id,p.id);
+      const stTxt=ms.diff===0?"ALL SQUARE":ms.diff>0?`${champ.name.split(' ')[0]} ${ms.diff}UP`:`${p.name.split(' ')[0]} ${Math.abs(ms.diff)}UP`;
+      const stCls=ms.diff>0?"var(--navy)":ms.diff<0?"var(--red)":"var(--muted)";
+      matches.push({
+         title: `<div style="font-size:13px;font-weight:800;color:var(--navy)">👑 ${champ.name} <span style="font-weight:500;color:var(--muted);font-size:11px">vs</span> ${p.name}</div>`,
+         statusHtml: `<div style="font-size:11px;font-weight:800;color:${stCls};margin-top:2px">${stTxt}</div>`,
+         results: Array.from({length:18},(_,i)=>getHoleResult1v1(champ.id,p.id,i)),
+         type: '1v1'
+      });
+    });
+  }
+  else if(fmt==="team"){
+    leg.textContent=`Team Match - Holes Won`;
+    const allR=Array.from({length:18},(_,i)=>window.getTeamHoleResultDynamic(i));
+    let wins = {}; window.config.teamsList.forEach(t => wins[t.id] = 0);
+    allR.forEach(r => { if (r && r !== 'halve') wins[r]++; });
+    
+    let sortedTeams = [...window.config.teamsList].sort((a,b) => wins[b.id] - wins[a.id]);
+    let leader = sortedTeams[0];
+    let diff = sortedTeams.length > 1 ? wins[leader.id] - wins[sortedTeams[1].id] : 0;
+    let stTxt = diff === 0 ? "ALL SQUARE" : `${leader.name.toUpperCase()} +${diff}`;
+
+    matches.push({
+        title: `<div style="font-size:13px;font-weight:800;color:var(--navy)">Team Match</div>`,
+        statusHtml: `<div style="font-size:11px;font-weight:800;color:var(--navy);margin-top:2px">${stTxt}</div>`,
+        results: allR,
+        type: 'team'
+    });
+  }
+  else if(fmt==="pairs" && window.config.pairs){
+    leg.textContent=`👑 = Player 1 Win  ·  O = Player 2 Win  ·  = = Halve`;
+    window.config.pairs.forEach(pair=>{
+      const p1=window.players.find(p=>p.id===pair.p1),p2=window.players.find(p=>p.id===pair.p2);
+      if(!p1||!p2) return;
+      const ms=getMatchStatus1v1(p1.id,p2.id);
+      const stTxt=ms.diff===0?"ALL SQUARE":ms.diff>0?`${p1.name.split(' ')[0]} ${ms.diff}UP`:`${p2.name.split(' ')[0]} ${Math.abs(ms.diff)}UP`;
+      const stCls=ms.diff>0?"var(--navy)":ms.diff<0?"var(--red)":"var(--muted)";
+      matches.push({
+         title: `<div style="font-size:13px;font-weight:800;color:var(--navy)">${p1.name} <span style="font-weight:500;color:var(--muted);font-size:11px">vs</span> ${p2.name}</div>`,
+         statusHtml: `<div style="font-size:11px;font-weight:800;color:${stCls};margin-top:2px">${stTxt}</div>`,
+         results: Array.from({length:18},(_,i)=>getHoleResult1v1(p1.id,p2.id,i)),
+         type: '1v1'
+      });
+    });
+  }
+
+  if (matches.length > 0) {
+      let thHtml = `<th style="min-width:140px; text-align:left; padding-left:14px">Versus</th>`;
+      for(let i=1; i<=18; i++) thHtml += `<th style="min-width:34px">${i}</th>`;
+      
+      let trsHtml = matches.map(m => {
+          let tds = m.results.map((r, i) => {
+              let cls="e", txt="", inlineStyle="";
+              if(m.type === '1v1') {
+                  cls = r==="p1"?"s":r==="p2"?"o":r==="halve"?"h":"e";
+                  txt = r==="p1"?"👑":r==="p2"?"O":r==="halve"?"=":"";
+              } else if (m.type === 'team') {
+                  let bg = r === 'halve' ? '#f0f0f0' : (r ? window.config.teamsList.find(t=>t.id===r).color : 'transparent');
+                  let col = r === 'halve' ? '#666' : (r ? '#fff' : 'inherit');
+                  let bColor = r && r!=='halve' ? 'transparent' : 'var(--border)';
+                  inlineStyle = `style="background:${bg}; color:${col}; border-color:${bColor};"`;
+                  txt = r === 'halve' ? '=' : (r ? window.config.teamsList.find(t=>t.id===r).name.charAt(0).toUpperCase() : "");
+              }
+              return `<td><div class="m-chip ${cls}" ${inlineStyle} onclick="window.jumpHole(${i+1})">${txt}</div></td>`;
+          }).join("");
+          
+          return `<tr>
+             <td style="text-align:left; padding:10px 14px;">
+                ${m.title}
+                ${m.statusHtml}
+             </td>
+             ${tds}
+          </tr>`;
+      }).join("");
+
+      mc.innerHTML = `
+        <div class="match-table-wrap">
+          <table class="match-table">
+            <thead><tr>${thHtml}</tr></thead>
+            <tbody>${trsHtml}</tbody>
+          </table>
+        </div>
+      `;
+  }
+}
+
+function renderBoard(){
+  if (window.players.length === 0) {
+      document.getElementById("boardContent").innerHTML = `<div class="empty-state"><div class="empty-icon">🏆</div><br>${window.t('msg_empty_player')}</div>`;
+      document.getElementById("allTable").innerHTML = "";
+      return;
+  }
+
+  const MEDALS=["🥇","🥈","🥉"];
+  const lb=[...window.players].map(p=>({...p,gross:window.getGross(p.id),net:window.getNet(p.id),tp:window.getToPar(p.id)}))
+    .filter(p=>p.gross>0).sort((a,b)=>a.gross-b.gross);
+  const bc=document.getElementById("boardContent");
+  bc.innerHTML=lb.length?lb.map((p,i)=>`
+    <div class="bitem ${i<3?"r"+(i+1):""}">
+      ${i<3?`<div class="bmedal">${MEDALS[i]}</div>`:`<div class="bnum">${i+1}</div>`}
+      <div class="binfo">
+        <div class="bname">${p.name}${p.id===window.config.champion&&window.config.format==="one_vs_all"?`<span class="badge gold">👑</span>`:""}</div>
+        <div class="bmeta">HC ${p.hc} · ${p.cart}${p.role?" · "+p.role:""}</div>
+      </div>
+      <div class="bscore">
+        <div class="bgross">${p.gross}</div>
+        <div class="bnet">Net ${p.net}${p.tp!==null?" · "+(p.tp===0?"E":p.tp>0?"+"+p.tp:p.tp)+" vs par":""}</div>
+      </div>
+    </div>`).join(""):`<div class="empty-state"><div class="empty-icon">⛳</div>-</div>`;
+
+  const vsH=window.config.format!=="strokeplay"?"<th>Match</th>":"";
+  document.getElementById("allTable").innerHTML=`
+    <thead><tr><th>#</th><th>Name</th><th>HC</th><th>Holes</th><th>Gross</th><th>Net</th><th>vs Par</th>${vsH}</tr></thead>
+    <tbody>${window.players.map(p=>{
+      const g=window.getGross(p.id),n=window.getNet(p.id),hp=window.scores[p.id]?window.scores[p.id].filter(s=>s&&s>0).length:0;
+      const tp=window.getToPar(p.id);
+      const tpStr=tp===null?"—":tp===0?"E":tp>0?"+"+tp:""+tp;
+      let vsCol="";
+      if(vsH){
+        if(window.config.format==="one_vs_all"&&p.id!==window.config.champion){
+          const ms=getMatchStatus1v1(window.config.champion,p.id);
+          vsCol=ms.played>0?(ms.diff>0?`<span style="color:var(--navy);font-weight:700">Ch.${ms.w1}–${ms.w2}</span>`:
+            ms.diff<0?`<span style="color:var(--red);font-weight:700">${ms.w2}–${ms.w1} Opp</span>`:
+            `${ms.w1}–${ms.w2}`):"—";
+        } else if(window.config.format==="one_vs_all"&&p.id===window.config.champion) vsCol=`👑`;
+      }
+      return `<tr><td>${p.id}</td><td><b>${p.name}</b></td><td>${p.hc}</td>
+        <td>${hp}/18</td><td><b>${g||"—"}</b></td><td>${n!==null?n:"—"}</td>
+        <td style="color:${tp===null?"var(--muted)":tp<0?"var(--green2)":tp>0?"var(--red)":"inherit"}">${tpStr}</td>
+        ${vsH?`<td>${vsCol}</td>`:""}
+      </tr>`;
+    }).join("")}</tbody>`;
+}
+
+window.shareWA = () => {
+  if(window.players.length === 0) {
+      window.sysAlert(window.t('msg_no_data'), "Info", "⚠️");
+      return;
+  }
+  const lb=[...window.players].map(p=>({...p,gross:window.getGross(p.id),net:window.getNet(p.id)}))
+    .filter(p=>p.gross>0).sort((a,b)=>a.gross-b.gross);
+  const medals=["🥇","🥈","🥉"];
+  let txt=`🏌️ *${window.config.name||"Golf Event"}*\n📍 ${window.config.venue||"-"} · ${window.config.date||"-"}\n\n`;
+  txt+=`🏆 *LEADERBOARD*\n`;
+  lb.forEach((p,i)=>{txt+=`${i<3?medals[i]:(i+1)+"."} ${p.name} — Gross: *${p.gross}* | Net: ${p.net}\n`;});
+  
+  if(window.config.format==="one_vs_all"){
+    const champ=window.players.find(p=>p.id===window.config.champion);
+    if(champ){
+      txt+=`\n⚔️ *MATCH (vs ${champ.name})*\n`;
+      window.players.filter(p=>p.id!==champ.id).forEach(p=>{
+        const ms=getMatchStatus1v1(champ.id,p.id);
+        if(ms.played>0){
+          const res=ms.diff===0?"SQUARE":ms.diff>0?`${champ.name} ${ms.diff}UP`:`${p.name} ${Math.abs(ms.diff)}UP`;
+          txt+=`• vs ${p.name}: *${res}*\n`;
+        }
+      });
+    }
+  } else if(window.config.format==="team"){
+    const allR=Array.from({length:18},(_,i)=>window.getTeamHoleResultDynamic(i));
+    let wins = {}; window.config.teamsList.forEach(t => wins[t.id] = 0);
+    let ha = 0;
+    allR.forEach(r => {
+        if (r === 'halve') ha++;
+        else if (r) wins[r]++;
+    });
+    txt+=`\n🤝 *TEAM MATCH (Holes Won)*\n`;
+    window.config.teamsList.forEach(t => {
+        txt+=`• ${t.name}: *${wins[t.id]}* Hole(s)\n`;
+    });
+    txt+=`_Halves (Draw): ${ha}_\n`;
+  }
+  
+  txt+=`\n_Powered by GolfSync PRO_ 🏌️`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,"_blank");
+}
+
+// SETUP UI
+window.renderPlayerEditList = () => {
+  const wrap=document.getElementById("playerEditList");
+  if(!wrap) return;
+  wrap.innerHTML="";
+  if(window.players.length === 0) {
+      wrap.innerHTML = `<div style="text-align:center; padding: 20px; font-size:12px; color:var(--muted)">${window.t('msg_empty_player')}</div>`;
+  }
+  
+  const currentLinkedPlayerId = window.getLinkedPlayerId();
+  
+  window.players.forEach((p,i)=>{
+    const isLinked = currentLinkedPlayerId === p.id;
+    const row=document.createElement("div");
+    row.className="player-edit-row";
+    row.innerHTML=`
+      <div class="pedit-num">${p.id}</div>
+      <input class="pedit-name" type="text" value="${p.name}" placeholder="${window.t('ph_name')}"
+        oninput="window.updatePlayerName(${i}, this.value)" ${window.isGuest ? 'disabled' : ''}>
+      <input class="pedit-hc" type="number" inputmode="numeric" value="${p.hc}" placeholder="HC" min="0" max="54"
+        oninput="window.updatePlayerHC(${i}, this.value)" ${window.isGuest ? 'disabled' : ''}>
+      <input class="pedit-cart" type="text" value="${p.cart}" placeholder="${window.t('ph_cart')}"
+        oninput="window.updatePlayerCart(${i}, this.value)" ${window.isGuest ? 'disabled' : ''}>
+        
+      <button class="pedit-link ${isLinked ? 'active' : ''}" onclick="window.toggleLinkedPlayer(${p.id})" title="Sync to Personal">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </button>
+      <button class="pedit-del" onclick="window.removePlayer(${i})" title="Delete" style="display:${window.isGuest ? 'none' : 'flex'}">×</button>`;
+    wrap.appendChild(row);
+  });
+  
+  if(!isPremium && window.players.length >= 2) {
+      document.getElementById("btnProUpgrade").style.display = window.isGuest ? "none" : "block";
+  } else {
+      document.getElementById("btnProUpgrade").style.display = "none";
+  }
+}
+
+window.addPlayer = () => {
+  if (window.isGuest) return;
+  if (!isPremium && window.players.length >= 2) {
+      window.showPaywall();
+      return;
+  }
+  let maxId = window.players.reduce((max, p) => Math.max(max, p.id), 0);
+  const nextPlayerId = maxId + 1;
+  const newP={id:nextPlayerId, name:"Player "+nextPlayerId, hc:0, cart:"-", role:""};
+  window.players.push(newP);
+  window.scores[newP.id]=Array(18).fill(null);
+  
+  if(!window.config.teams) window.config.teams = {};
+  if(window.config.teamsList && window.config.teamsList.length > 0) {
+      window.config.teams[newP.id] = window.config.teamsList[0].id;
+  } else {
+      window.config.teams[newP.id] = "T1";
+  }
+  
+  if(window.config.format === 'one_vs_all' && !window.config.champion && window.players.length > 0) {
+      window.config.champion = window.players[0].id;
+  }
+  window.renderPlayerEditList();
+  window.renderFmtConfig();
+  window.markDirty();
+}
+
+window.removePlayer = (idx) => {
+  if(window.isGuest) return;
+  window.sysConfirm("Delete player?", async () => {
+    window.players.splice(idx,1);
+    window.renderPlayerEditList();
+    window.renderFmtConfig();
+    window.markDirty();
+  }, "Delete", "🗑️", "modal-btn-danger");
+}
+
+window.setFormat = (fmt) => {
+  if(window.isGuest) return;
+  cfgFormat=fmt;
+  document.querySelectorAll(".fmt-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("fmt-"+fmt).classList.add("active");
+  
+  if (fmt === "one_vs_all" && !window.config.champion && window.players.length > 0) {
+      window.config.champion = window.players[0].id;
+  }
+  window.renderFmtConfig();
+  window.markDirty();
+}
+
+window.renderFmtConfig = () => {
+  const wrap=document.getElementById("fmtConfig");
+  if(!wrap) return;
+  wrap.innerHTML="";
+  
+  if(window.players.length === 0) return;
+
+  if(cfgFormat==="one_vs_all"){
+    wrap.innerHTML=`<div class="setup-label">${window.t('lbl_champion')}</div>`;
+    const card=document.createElement("div");
+    card.style.cssText="background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden";
+    window.players.forEach(p=>{
+      const row=document.createElement("div");
+      row.className="player-setup-row";
+      const isC=window.config.champion===p.id;
+      row.innerHTML=`
+        <div class="champ-radio ${isC?"active":""} ${window.isGuest ? 'disabled' : ''}" id="cr-${p.id}" onclick="window.selectChampion(${p.id})">
+          ${isC?`<span style="font-size:11px">✓</span>`:""}
+        </div>
+        <div style="flex:1"><b>${p.name}</b> <span style="font-size:11px;color:var(--muted)">HC ${p.hc}</span></div>`;
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  }
+  else if(cfgFormat==="team"){
+    if (!window.config.teamsList) window.config.teamsList = [{id:"T1", name:"Team A", color:TEAM_COLORS[0]}, {id:"T2", name:"Team B", color:TEAM_COLORS[1]}];
+    
+    let teamsHtml = window.config.teamsList.map((t, i) => `
+        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+            <div style="width:16px;height:16px;border-radius:50%;background:${t.color}"></div>
+            <input type="text" class="setup-input team-assign-select" style="background:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-weight:600; font-size:13px; flex:1" value="${t.name}" oninput="window.updateTeamList(${i}, this.value)" ${window.isGuest ? 'disabled' : ''}>
+            ${(window.config.teamsList.length > 2 && !window.isGuest) ? `<button onclick="window.removeTeamList(${i})" style="border:none;background:var(--rl);color:var(--red);width:32px;height:32px;border-radius:8px;cursor:pointer">×</button>` : ''}
+        </div>
+    `).join('');
+    
+    wrap.innerHTML=`
+      <div class="setup-label">${window.t('lbl_team_list')}</div>
+      <div style="margin-bottom:16px;">
+        ${teamsHtml}
+        ${(window.config.teamsList.length < TEAM_COLORS.length && !window.isGuest) ? `<button class="add-player-btn" style="margin-top:8px;" onclick="window.addTeamList()">${window.t('btn_add_team')}</button>` : ''}
+      </div>
+      <div class="setup-label">${window.t('lbl_assign_team')}</div>`;
+      
+    const card=document.createElement("div");
+    card.style.cssText="background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden";
+    window.players.forEach(p=>{
+      const currentTeam = window.config.teams[p.id] || window.config.teamsList[0].id;
+      const options = window.config.teamsList.map(t => `<option value="${t.id}" ${currentTeam === t.id ? 'selected' : ''}>${t.name}</option>`).join('');
+      
+      const row=document.createElement("div");
+      row.className="player-setup-row";
+      row.innerHTML=`
+        <div style="flex:1"><b>${p.name}</b> <span style="font-size:11px;color:var(--muted)">HC ${p.hc}</span></div>
+        <select class="setup-input team-assign-select" style="width:130px; background:var(--bg); padding:6px 10px; border-radius:8px; font-size:12px; border:1px solid var(--border); font-weight:600; color:var(--navy)" onchange="window.setPlayerTeam(${p.id}, this.value)" ${window.isGuest ? 'disabled' : ''}>
+            ${options}
+        </select>`;
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  }
+  else if(cfgFormat==="pairs"){
+    wrap.innerHTML=`<div class="setup-label">${window.t('lbl_custom_pairs')}</div>`;
+    const card=document.createElement("div");
+    card.style.cssText="background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px";
+    if (window.config.pairs) {
+        window.config.pairs.forEach((pair,i)=>{
+          const row=document.createElement("div");
+          row.className="player-setup-row";
+          const opts1=window.players.map(p=>`<option value="${p.id}" ${p.id===pair.p1?"selected":""}>${p.name}</option>`).join("");
+          const opts2=window.players.map(p=>`<option value="${p.id}" ${p.id===pair.p2?"selected":""}>${p.name}</option>`).join("");
+          row.innerHTML=`
+            <select class="pair-select" onchange="window.updatePair(${i}, 'p1', this.value)" ${window.isGuest ? 'disabled' : ''}>${opts1}</select>
+            <span style="color:var(--muted);font-size:11px;flex-shrink:0">vs</span>
+            <select class="pair-select" onchange="window.updatePair(${i}, 'p2', this.value)" ${window.isGuest ? 'disabled' : ''}>${opts2}</select>
+            <button class="pedit-del" style="width:28px;height:28px; display:${window.isGuest ? 'none' : 'flex'}" onclick="window.removePair(${i})">×</button>`;
+          card.appendChild(row);
+        });
+    }
+    wrap.appendChild(card);
+    
+    if(!window.isGuest) {
+        const addBtn=document.createElement("button");
+        addBtn.className="add-player-btn";
+        addBtn.textContent= window.t('btn_add_pair');
+        addBtn.onclick=()=>{
+            if(window.players.length < 2) return;
+            if(!window.config.pairs) window.config.pairs = [];
+            window.config.pairs.push({p1:window.players[0].id,p2:window.players[1].id});
+            window.renderFmtConfig();
+        };
+        wrap.appendChild(addBtn);
+    }
+  }
+}
+
+window.selectChampion = (id) => {
+  if(window.isGuest) return;
+  window.config.champion=id;
+  document.querySelectorAll("[id^='cr-']").forEach(el=>{
+    const pid=parseInt(el.id.split("-")[1]);
+    el.className="champ-radio"+(pid===id?" active":"");
+    el.innerHTML=pid===id?`<span style="font-size:11px">✓</span>`:"";
+  });
+  window.markDirty();
+}
+
+function renderSetupUI(){
+  const cfgNameEl=document.getElementById("cfgName");
+  if(cfgNameEl) {
+      cfgNameEl.value=window.config.name||"";
+      cfgNameEl.disabled = window.isGuest;
+  }
+  const cfgDateEl=document.getElementById("cfgDate");
+  if(cfgDateEl) {
+      cfgDateEl.value=window.config.date||window.currentDate;
+      cfgDateEl.disabled = window.isGuest;
+  }
+  const cfgVenueEl=document.getElementById("cfgVenue");
+  if(cfgVenueEl) {
+      cfgVenueEl.value=window.config.venue||"";
+      cfgVenueEl.disabled = window.isGuest;
+  }
+  
+  if(window.isGuest) {
+      document.getElementById("guestNotice").style.display = "block";
+      document.getElementById("hostPlayerControls").style.display = "none";
+      document.getElementById("hostDangerControls").style.display = "none";
+      document.querySelectorAll(".fmt-btn").forEach(b=>b.classList.add("disabled"));
+  } else {
+      document.getElementById("guestNotice").style.display = "none";
+      document.getElementById("hostPlayerControls").style.display = "block";
+      document.getElementById("hostDangerControls").style.display = "flex";
+      document.querySelectorAll(".fmt-btn").forEach(b=>b.classList.remove("disabled"));
+  }
+  
+  window.renderPlayerEditList();
+  document.querySelectorAll(".fmt-btn").forEach(b=>b.classList.remove("active"));
+  const fmtEl=document.getElementById("fmt-"+cfgFormat);
+  if(fmtEl) fmtEl.classList.add("active");
+  window.renderFmtConfig();
+}
+
+// ==== ARSIP & RIWAYAT LOGIC (AUTOSAVE SYSTEM) ====
+window.markDirty = () => { 
+    if(window.isGuest) return;
+    cfgDirty = true; 
+    clearTimeout(window.autosaveTimer);
+    window.autosaveTimer = setTimeout(async () => {
+        window.config.name=document.getElementById("cfgName").value||window.config.name;
+        window.config.venue=document.getElementById("cfgVenue").value||window.config.venue;
+        window.config.format=cfgFormat;
+        await window.saveLiveUpdate({ config: window.config, players: window.players });
+        cfgDirty=false;
+        updateTourHeader();
+    }, 1500); 
+}
+
+window.promptResetScores = () => {
+  if(window.isGuest) return;
+  window.sysConfirm("Erase all scores for this date? Cannot be undone.", async () => {
+      window.players.forEach(p=>{ window.scores[p.id]=Array(18).fill(null); });
+      window.renderTour();
+      await window.saveLiveUpdate({ scores: window.scores });
+  }, "Reset", "⚠️", "modal-btn-danger");
+}
+
+window.promptResetEvent = () => {
+  if(window.isGuest) return;
+  window.sysConfirm("Erase all tournament data for this room?", async () => {
+      window.config = window.getBlankConfig(window.currentDate);
+      window.players = [];
+      window.scores = {};
+      
+      document.getElementById("cfgName").value = window.config.name;
+      document.getElementById("cfgVenue").value = window.config.venue;
+      
+      await window.saveLiveUpdate({ config: window.config, players: window.players, scores: window.scores });
+      window.renderTour();
+  }, "Reset Event", "🚨", "modal-btn-danger");
+}
+
+// ===== SYSTEM MODAL HELPERS =====
+window.hideModal = () => { document.getElementById("sysModal").style.display = "none"; }
+window.showCustomModal = (opts) => {
+  document.getElementById("modIcon").innerHTML = opts.icon || "ℹ️";
+  document.getElementById("modTitle").textContent = opts.title || "Info";
+  document.getElementById("modText").innerHTML = opts.text || "";
+  
+  const actions = document.getElementById("modActions");
+  actions.innerHTML = "";
+  
+  opts.buttons.forEach(b => {
+    const btn = document.createElement("button");
+    btn.className = "modal-btn " + (b.class || "modal-btn-confirm");
+    btn.textContent = b.label;
+    btn.onclick = () => {
+      if(b.onClick) b.onClick();
+      window.hideModal();
+    };
+    actions.appendChild(btn);
+  });
+  
+  document.getElementById("sysModal").style.display = "flex";
+}
+window.sysAlert = (text, title="Pemberitahuan", icon="🔔") => { window.showCustomModal({ icon, title, text, buttons: [{label: "OK", class: "modal-btn-cancel"}] }); }
+window.sysConfirm = (text, onConfirm, title="Konfirmasi", icon="❓", confirmBtnClass="modal-btn-danger") => {
+  window.showCustomModal({ icon, title, text, buttons: [{label: window.t('cancel'), class: "modal-btn-cancel"}, {label: "OK", class: confirmBtnClass, onClick: onConfirm}] });
+}
+window.showPaywall = () => {
+  window.showCustomModal({
+    icon: "👑", title: window.t('pro_upgrade'),
+    text: "Versi Gratis membatasi maksimal 2 pemain di mode Turnamen. Buka akses PRO untuk pemain tak terbatas!<br><br><i>(Simulasi Sistem Langganan IAP)</i>",
+    buttons: [
+      {label: window.t('cancel'), class: "modal-btn-cancel"},
+      {label: "Upgrade PRO", class: "modal-btn-gold", onClick: window.unlockPro}
+    ]
+  });
+}
+window.unlockPro = async () => {
+  isPremium = true;
+  document.getElementById("appBody").classList.add("is-premium");
+  document.getElementById("btnProUpgrade").style.display = "none";
+  window.sysAlert(window.t('msg_success'), "PRO", "🎉");
+  if(currentUser) {
+      const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+      await setDoc(privDocRef, { isPremium: true }, { merge: true });
+  }
+  window.renderPlayerEditList();
+}
+
+// Initial Call
+window.changeLang(window.currentLang);
+
+</script>
+</body>
+</html>
