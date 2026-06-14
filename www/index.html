@@ -2099,11 +2099,56 @@ function renderMatch(){
           </div>`;
       }
 
+      let judgementRowHtml = "";
+      if (fmt === "one_vs_all" && window.config.champion) {
+          const champ = window.players.find(p=>p.id===window.config.champion) || window.players[0];
+          const opps = window.players.filter(p=>p.id!==champ.id);
+          
+          let jTds = "";
+          for (let h = 0; h < 18; h++) {
+              let c_wins = 0;
+              let o_wins = 0;
+              let played = 0;
+              opps.forEach(p => {
+                  const r = getHoleResult1v1(champ.id, p.id, h);
+                  if (r) {
+                      played++;
+                      if (r === "p1") c_wins++;
+                      else if (r === "p2") o_wins++;
+                  }
+              });
+              
+              let cls = "e", txt = "";
+              if (played > 0) {
+                  if (c_wins > o_wins) {
+                      cls = "s"; txt = "👑";
+                  } else if (o_wins > c_wins) {
+                      cls = "o"; txt = "O";
+                  } else {
+                      cls = "h"; txt = "=";
+                  }
+              }
+              jTds += `<td><div class="m-chip ${cls}" onclick="window.jumpHole(${h+1})">${txt}</div></td>`;
+          }
+          
+          judgementRowHtml = `
+          <tr style="background: var(--gol); font-weight: bold;">
+             <td style="text-align:left; padding:10px 14px; position: sticky; left: 0; background: var(--gol); z-index: 10; font-weight: 800; color: #b8860b;">
+                🏆 Winner
+                <div style="font-size:10px; font-weight:normal; color:var(--muted); margin-top:2px;">Hole-by-Hole Winner</div>
+             </td>
+             ${jTds}
+          </tr>`;
+      }
+
       mc.innerHTML = `
         <div class="match-table-wrap">
           <table class="match-table">
             <thead><tr>${thHtml}</tr></thead>
-            <tbody>${trsHtml}</tbody>
+            <tbody>
+              ${trsHtml}
+              ${judgementRowHtml}
+            </tbody>
           </table>
         </div>
         ${judgementHtml}
