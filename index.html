@@ -912,6 +912,15 @@ window.tourHubNew = () => {
         return; 
     }
 
+    if (!currentUser || currentUser.email !== 'alfin.armadani@sugity.co.id') {
+        window.sysAlert(
+            "Hanya akun <b>alfin.armadani@sugity.co.id</b> yang dapat membuat turnamen baru (Host). Akun Anda saat ini hanya dapat bergabung sebagai Guest.",
+            "Akses Terbatas",
+            "🔒"
+        );
+        return;
+    }
+
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     window.currentLiveTourId = code;
     window.isGuest = false;
@@ -975,8 +984,8 @@ window.listenToLiveRoom = (isJoining = false) => {
             window.scores = data.scores || {};
             cfgFormat = window.config.format || "strokeplay";
             
-            // Tentukan apakah Guest atau Host berdasarkan creatorId
-            if (currentUser && data.creatorId === currentUser.uid) {
+            // Tentukan apakah Guest atau Host berdasarkan creatorId dan pembatasan email
+            if (currentUser && currentUser.email === 'alfin.armadani@sugity.co.id' && data.creatorId === currentUser.uid) {
                 window.isGuest = false;
                 window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'host');
             } else {
