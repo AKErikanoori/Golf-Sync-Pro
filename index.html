@@ -2110,23 +2110,20 @@ function renderMatch(){
           
           let jTds = "";
           for (let h = 0; h < 18; h++) {
-              let c_wins = 0;
-              let o_wins = 0;
-              let played = 0;
+              const champScore = window.scores[champ.id]?.[h];
+              let bestOppScore = Infinity;
               opps.forEach(p => {
-                  const r = getHoleResult1v1(champ.id, p.id, h);
-                  if (r) {
-                      played++;
-                      if (r === "p1") c_wins++;
-                      else if (r === "p2") o_wins++;
+                  const s = window.scores[p.id]?.[h];
+                  if (s && s > 0 && s < bestOppScore) {
+                      bestOppScore = s;
                   }
               });
               
               let cls = "e", txt = "";
-              if (played > 0) {
-                  if (c_wins > o_wins) {
+              if (champScore && champScore > 0 && bestOppScore !== Infinity) {
+                  if (champScore < bestOppScore) {
                       cls = "s"; txt = "👑";
-                  } else if (o_wins > c_wins) {
+                  } else if (bestOppScore < champScore) {
                       cls = "o"; txt = "O";
                   } else {
                       cls = "h"; txt = "=";
