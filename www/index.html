@@ -1964,47 +1964,52 @@ function renderMatch(){
       let judgementHtml = "";
       if (fmt === "one_vs_all" && window.config.champion) {
           const champ = window.players.find(p=>p.id===window.config.champion) || window.players[0];
-          let champWins = 0;
-          let oppWins = 0;
-          let ties = 0;
-          let totalMatches = 0;
+          const opps = window.players.filter(p=>p.id!==champ.id);
           
-          let itemsHtml = window.players.filter(p=>p.id!==champ.id).map(p => {
-              const ms = getMatchStatus1v1(champ.id, p.id);
-              totalMatches++;
-              if (ms.diff > 0) {
-                  champWins++;
-                  return `
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-                    <div>👑 <b>${champ.name}</b> vs 👤 ${p.name}</div>
-                    <div style="color: var(--green2); font-weight: bold;">👑 ${champ.name} Menang (${ms.diff} UP)</div>
-                  </div>`;
-              } else if (ms.diff < 0) {
-                  oppWins++;
-                  return `
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-                    <div>👑 ${champ.name} vs 👤 <b>${p.name}</b></div>
-                    <div style="color: var(--red); font-weight: bold;">👤 ${p.name} Menang (${Math.abs(ms.diff)} UP)</div>
-                  </div>`;
-              } else {
-                  ties++;
-                  return `
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-                    <div>👑 ${champ.name} vs 👤 ${p.name}</div>
-                    <div style="color: var(--muted); font-weight: bold;">⚖️ Seri (All Square)</div>
-                  </div>`;
+          let champHolesWon = 0;
+          let oppHolesWon = 0;
+          let holeHalves = 0;
+          let holesPlayed = 0;
+          
+          for (let h = 0; h < 18; h++) {
+              const champScore = window.scores[champ.id]?.[h];
+              let bestOppScore = Infinity;
+              opps.forEach(p => {
+                  const s = window.scores[p.id]?.[h];
+                  if (s && s > 0 && s < bestOppScore) {
+                      bestOppScore = s;
+                  }
+              });
+              
+              if (champScore && champScore > 0 && bestOppScore !== Infinity) {
+                  holesPlayed++;
+                  if (champScore < bestOppScore) {
+                      champHolesWon++;
+                  } else if (bestOppScore < champScore) {
+                      oppHolesWon++;
+                  } else {
+                      holeHalves++;
+                  }
               }
-          }).join("");
+          }
           
           let summaryHtml = "";
-          if (totalMatches > 0) {
-              if (champWins > oppWins) {
-                  summaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--green2); text-align: center; margin-top: 8px;">🏆 PEMENANG UTAMA: ${champ.name} (${champWins} Menang, ${oppWins} Kalah, ${ties} Seri)</div>`;
-              } else if (oppWins > champWins) {
-                  summaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--red); text-align: center; margin-top: 8px;">🏆 PEMENANG UTAMA: LAWAN (Lawan memenangkan ${oppWins} match, Champion ${champWins} match)</div>`;
-              } else {
-                  summaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--muted); text-align: center; margin-top: 8px;">⚖️ HASIL AKHIR: SERI (${champWins} Menang, ${oppWins} Kalah, ${ties} Seri)</div>`;
-              }
+          if (holesPlayed > 0) {
+              const diff = champHolesWon - oppHolesWon;
+              const outcomeTxt = diff === 0 ? "ALL SQUARE" : diff > 0 ? `${champ.name.toUpperCase()} ${diff}UP` : `OPPONENTS ${Math.abs(diff)}UP`;
+              const color = diff === 0 ? "var(--muted)" : diff > 0 ? "var(--green2)" : "var(--red)";
+              
+              summaryHtml = `
+              <div style="font-size: 14px; font-weight: 800; color: ${color}; text-align: center;">
+                🏆 HASIL AKHIR: ${outcomeTxt}
+              </div>
+              <div style="font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.5;">
+                👑 <b>${champ.name} (Ch.)</b>: ${champHolesWon} hole won<br>
+                👥 <b>Opponents (Best of All)</b>: ${oppHolesWon} hole won<br>
+                ⚖️ <b>Halves (Seri)</b>: ${holeHalves} hole
+              </div>`;
+          } else {
+              summaryHtml = `<div style="font-size: 12px; color: var(--muted); text-align: center;">Belum ada skor hole-by-hole yang terisi untuk kedua pihak.</div>`;
           }
           
           judgementHtml = `
@@ -2013,7 +2018,6 @@ function renderMatch(){
               <span class="card-head-label">⚖️ HASIL AKHIR MATCH</span>
             </div>
             <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fff;">
-              ${itemsHtml}
               ${summaryHtml}
             </div>
           </div>`;
