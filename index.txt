@@ -1048,6 +1048,12 @@ window.toggleLoginLoading = (isLoading) => {
 };
 
 window.triggerLogin = async () => {
+    // BLOKIR LOGIN GOOGLE JIKA DI BUKA DI APK ANDROID
+    if (typeof window.Capacitor !== 'undefined' && window.Capacitor.isNative) {
+        window.sysAlert("Login Google tidak didukung di Aplikasi Android. Silakan gunakan fitur <b>Login via Email</b> di bawah.", "Gunakan Email", "📧");
+        return;
+    }
+
     window.toggleLoginLoading(true);
     
     try {
