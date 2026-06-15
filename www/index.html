@@ -1085,14 +1085,30 @@ window.addRecentTournament = async (code, name, date, role) => {
         date: date || window.currentDate,
         role: role
     });
-    if (window.personalData.recentTournaments.length > 5) {
-        window.personalData.recentTournaments = window.personalData.recentTournaments.slice(0, 5);
+    if (window.personalData.recentTournaments.length > 20) {
+        window.personalData.recentTournaments = window.personalData.recentTournaments.slice(0, 20);
     }
     if (currentUser) {
         const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
         await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
     }
     window.renderTourHub();
+};
+
+window.deleteRecentTournament = async (code, event) => {
+    event.stopPropagation(); // Jangan trigger join saat tap delete
+    window.sysConfirm(
+        `Hapus event <b>${code}</b> dari daftar riwayat?<br><small style="color:var(--muted)">Data di server tidak akan terhapus.</small>`,
+        async () => {
+            window.personalData.recentTournaments = window.personalData.recentTournaments.filter(t => t.code !== code);
+            if (currentUser) {
+                const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
+                await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+            }
+            window.renderTourHub();
+        },
+        "Hapus dari Daftar", "🗑️", "modal-btn-danger"
+    );
 };
 
 window.renderTourHub = () => {
@@ -1107,13 +1123,16 @@ window.renderTourHub = () => {
         const badgeColor = t.role === 'host' ? 'var(--navy)' : 'var(--gold)';
         const textColor = t.role === 'host' ? '#fff' : '#000';
         const badgeText = t.role === 'host' ? 'Host' : 'Guest';
+        const isHost = t.role === 'host';
+        const borderColor = isHost ? 'var(--navy)' : 'var(--gold)';
         return `
-        <div class="hist-item" style="cursor:pointer; margin-bottom:10px; border-left: 4px solid ${t.role === 'host' ? 'var(--navy)' : 'var(--gold)'};" onclick="window.tourHubJoin('${t.code}')">
+        <div class="hist-item" style="cursor:pointer; margin-bottom:10px; border-left: 4px solid ${borderColor}; position:relative; padding-right:${isHost ? '72px' : '44px'};" onclick="window.tourHubJoin('${t.code}')">
           <div class="hist-item-left">
             <div class="hist-date">📅 ${t.date} <span style="background:${badgeColor}; color:${textColor}; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; margin-left:6px;">${badgeText}</span></div>
-            <div class="hist-venue" style="font-size:14px; font-weight:700; color:var(--text)">🏆 ${t.name} (Room: ${t.code})</div>
+            <div class="hist-venue" style="font-size:13px; font-weight:700; color:var(--text)">🏆 ${t.name} <span style="font-weight:400; font-size:11px; color:var(--muted);">(${t.code})</span></div>
           </div>
-          <div class="hist-item-right" style="display:flex; align-items:center;">
+          <div style="position:absolute; right:10px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:6px;">
+            ${isHost ? `<button onclick="window.deleteRecentTournament('${t.code}', event)" style="width:26px; height:26px; border-radius:6px; background:#fff3f3; border:1px solid #ffc9c9; color:var(--red); font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="Hapus dari daftar">×</button>` : ''}
             <div style="font-size:16px; color:var(--navy); font-weight:bold;">➔</div>
           </div>
         </div>
