@@ -199,6 +199,8 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 .save-btn{width:100%;padding:14px;border-radius:12px;background:var(--navy);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;}
 .danger-btn{width:100%;padding:14px;border-radius:12px;background:var(--red2);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:8px}
 .share-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;background:#25D366;color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#1a2744,#2d4a8a);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px;box-shadow:0 4px 14px rgba(26,39,68,0.35);transition:opacity 0.15s;}
+.pdf-btn:active{opacity:0.85;transform:scale(0.98);}
 
 .player-setup-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff}
 .team-toggle{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
@@ -223,6 +225,24 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 .add-round-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--green2); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(46,125,50,0.3); }
 .add-drive-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(26,39,68,0.3); }
 .add-round-btn:active, .add-drive-btn:active { transform: scale(0.98); }
+.hist-item.clickable { cursor: pointer; transition: box-shadow 0.18s, transform 0.18s; }
+.hist-item.clickable:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(26,39,68,0.12); }
+.hist-item.clickable:hover { box-shadow: 0 4px 16px rgba(26,39,68,0.13); }
+/* Round Detail View */
+#roundDetailPanel { display: none; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.rd-hero { background: var(--navy); border-radius: 16px; padding: 24px 20px; text-align: center; margin-bottom: 18px; color: #fff; position: relative; overflow: hidden; }
+.rd-hero::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:rgba(255,255,255,0.06); border-radius:50%; }
+.rd-hero-score { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: -2px; }
+.rd-hero-par { font-size: 14px; opacity: 0.75; margin-top: 4px; }
+.rd-hero-diff { display: inline-block; margin-top: 10px; padding: 4px 16px; border-radius: 20px; font-size: 16px; font-weight: 800; }
+.rd-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.rd-info-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+.rd-info-val { font-size: 22px; font-weight: 800; color: var(--navy); }
+.rd-info-lbl { font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.rd-tour-badge { background: linear-gradient(135deg, #b8860b, #d4a017); color: #fff; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; font-size: 13px; font-weight: 700; }
+.rd-back-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--border); color: var(--text); font-size: 14px; font-weight: 700; border: none; cursor: pointer; margin-bottom: 10px; }
+.rd-del-btn { width: 100%; padding: 12px; border-radius: 12px; background: #fff3f3; color: var(--red); font-size: 13px; font-weight: 700; border: 1px solid #ffc9c9; cursor: pointer; margin-bottom: 10px; }
 
 /* === MODALS === */
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);padding:20px}
@@ -406,11 +426,46 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
       </button>
     </div>
 
-    <div class="setup-label" data-i18n="hist_course">Riwayat Turun Lapangan</div>
-    <div id="personalHistoryList" style="margin-bottom:24px;"></div>
+    <div id="personalMainView">
+      <div class="setup-label" data-i18n="hist_course">Riwayat Turun Lapangan</div>
+      <div id="personalHistoryList" style="margin-bottom:24px;"></div>
 
-    <div class="setup-label" data-i18n="hist_drive">Riwayat Latihan Driving</div>
-    <div id="personalDrivingList"></div>
+      <div class="setup-label" data-i18n="hist_drive">Riwayat Latihan Driving</div>
+      <div id="personalDrivingList"></div>
+    </div>
+
+    <div id="roundDetailPanel">
+      <div class="rd-hero" id="rdHero">
+        <div style="font-size:11px; opacity:0.7; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.08em;" id="rdDate">—</div>
+        <div style="font-size:13px; font-weight:700; opacity:0.85; margin-bottom:12px;" id="rdVenue">—</div>
+        <div class="rd-hero-score" id="rdGross">—</div>
+        <div class="rd-hero-par" id="rdParLabel">Par —</div>
+        <div class="rd-hero-diff" id="rdDiff">—</div>
+      </div>
+      <div id="rdTourBadge" class="rd-tour-badge" style="display:none;">
+        🏆 <span id="rdTourText">Linked Tournament</span>
+      </div>
+      <div class="rd-info-grid">
+        <div class="rd-info-card">
+          <div class="rd-info-val" id="rdNet">—</div>
+          <div class="rd-info-lbl">Skor Net (est.)</div>
+        </div>
+        <div class="rd-info-card">
+          <div class="rd-info-val" id="rdVsPar">—</div>
+          <div class="rd-info-lbl">vs Par</div>
+        </div>
+        <div class="rd-info-card">
+          <div class="rd-info-val" id="rdTotalPar">—</div>
+          <div class="rd-info-lbl">Total Par Lapangan</div>
+        </div>
+        <div class="rd-info-card">
+          <div class="rd-info-val" id="rdHcApplied">—</div>
+          <div class="rd-info-lbl">Handicap Saat Ini</div>
+        </div>
+      </div>
+      <button class="rd-del-btn" id="rdDelBtn">🗑️ Hapus Ronde Ini</button>
+      <button class="rd-back-btn" onclick="window.closeRoundDetail()">← Kembali ke Riwayat</button>
+    </div>
     <div class="pb"></div>
   </div>
 </div>
@@ -474,6 +529,10 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 
   <div id="view-match" style="display:none">
     <div class="wrap">
+      <button class="pdf-btn" onclick="window.shareMatchPDF()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        📄 Share / Save PDF (Landscape)
+      </button>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="matchLegend"></div>
       <div id="matchContent"></div>
       <div class="pb"></div>
@@ -914,7 +973,7 @@ window.tourHubNew = () => {
 
     if (!currentUser || currentUser.email !== 'alfin.armadani@sugity.co.id') {
         window.sysAlert(
-            "Hanya akun <b>alfin.armadani@sugity.co.id</b> yang dapat membuat turnamen baru (Host). Akun Anda saat ini hanya dapat bergabung sebagai Guest.",
+            "Fitur Host tidak tersedia untuk akun Anda.",
             "Akses Terbatas",
             "🔒"
         );
@@ -1402,9 +1461,10 @@ window.renderPersonalApp = () => {
             const diff = r.gross - r.par;
             const diffStr = diff > 0 ? `+${diff}` : (diff === 0 ? 'E' : diff);
             const color = diff > 0 ? 'var(--red)' : 'var(--green2)';
+            const borderStyle = r.tourId ? 'border-left: 4px solid var(--gold);' : '';
             
             return `
-            <div class="hist-item" ${r.tourId ? `style="border-left: 4px solid var(--gold)"` : ''}>
+            <div class="hist-item clickable" style="${borderStyle}" onclick="window.openRoundDetail(${r.id})">
               <div class="hist-item-left">
                 <div class="hist-date">📅 ${r.date || '-'} ${r.tourId ? '🏆' : ''}</div>
                 <div class="hist-venue">⛳ ${r.venue || '-'}</div>
@@ -1413,7 +1473,7 @@ window.renderPersonalApp = () => {
                 <div class="hist-gross">${r.gross}</div>
                 <div class="hist-par">Par ${r.par} (<span style="color:${color};font-weight:700">${diffStr}</span>)</div>
               </div>
-              <button class="pedit-del" style="margin-left:12px; width:26px; height:26px;" onclick="window.deletePersonalRound(${r.id})">×</button>
+              <svg style="margin-left:10px; flex-shrink:0; opacity:0.35" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
             </div>
             `;
         }).join('');
@@ -1474,6 +1534,7 @@ window.deletePersonalRound = (id) => {
         }
         window.personalData.history = window.personalData.history.filter(r => r.id !== id);
         window.recalculateHandicap();
+        window.closeRoundDetail();
         window.renderPersonalApp();
         
         if(currentUser) {
@@ -1482,6 +1543,55 @@ window.deletePersonalRound = (id) => {
         }
     }, "Delete", "🗑️", "modal-btn-danger");
 }
+
+window.openRoundDetail = (id) => {
+    const r = window.personalData.history.find(h => h.id === id);
+    if (!r) return;
+    
+    const diff = r.gross - r.par;
+    const diffStr = diff > 0 ? `+${diff}` : (diff === 0 ? 'E' : `${diff}`);
+    const diffColor = diff > 0 ? 'rgba(220,38,38,0.15)' : (diff === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(46,125,50,0.2)');
+    const diffTextColor = diff > 0 ? '#ef4444' : (diff === 0 ? '#fff' : '#4ade80');
+    const hc = window.personalData.handicap || 0;
+    const net = r.gross - hc;
+    
+    document.getElementById('rdDate').textContent = r.date || '—';
+    document.getElementById('rdVenue').textContent = '⛳ ' + (r.venue || '—');
+    document.getElementById('rdGross').textContent = r.gross;
+    document.getElementById('rdParLabel').textContent = 'Par ' + r.par;
+    const diffEl = document.getElementById('rdDiff');
+    diffEl.textContent = diffStr;
+    diffEl.style.background = diffColor;
+    diffEl.style.color = diffTextColor;
+    
+    document.getElementById('rdNet').textContent = Math.round(net);
+    document.getElementById('rdVsPar').textContent = diffStr;
+    document.getElementById('rdVsPar').style.color = diff > 0 ? 'var(--red)' : (diff === 0 ? 'var(--muted)' : 'var(--green2)');
+    document.getElementById('rdTotalPar').textContent = r.par;
+    document.getElementById('rdHcApplied').textContent = hc.toFixed(1);
+    
+    const tourBadge = document.getElementById('rdTourBadge');
+    if (r.tourId) {
+        document.getElementById('rdTourText').textContent = 'Event: ' + r.tourId + (r.venue ? ' — ' + r.venue : '');
+        tourBadge.style.display = 'flex';
+    } else {
+        tourBadge.style.display = 'none';
+    }
+    
+    const delBtn = document.getElementById('rdDelBtn');
+    delBtn.onclick = () => window.deletePersonalRound(id);
+    
+    document.getElementById('personalMainView').style.display = 'none';
+    document.getElementById('roundDetailPanel').style.display = 'block';
+    // Scroll to top
+    document.getElementById('app-personal').scrollTop = 0;
+    window.scrollTo(0, 0);
+};
+
+window.closeRoundDetail = () => {
+    document.getElementById('roundDetailPanel').style.display = 'none';
+    document.getElementById('personalMainView').style.display = 'block';
+};
 
 window.openAddDriveModal = () => {
     document.getElementById('addDrvDate').valueAsDate = new Date();
@@ -2255,6 +2365,257 @@ window.shareWA = () => {
   
   txt+=`\n_Powered by GolfSync PRO_ 🏌️`;
   window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,"_blank");
+}
+
+window.shareMatchPDF = () => {
+  const fmt = window.config.format;
+  if (window.players.length === 0) {
+      window.sysAlert(window.t('msg_no_data'), "Info", "⚠️");
+      return;
+  }
+
+  // ─── Build match rows data ───
+  let matchRows = [];
+
+  if (fmt === "one_vs_all" && window.config.champion) {
+      const champ = window.players.find(p => p.id === window.config.champion) || window.players[0];
+      window.players.filter(p => p.id !== champ.id).forEach(p => {
+          const results = Array.from({length:18}, (_, i) => getHoleResult1v1(champ.id, p.id, i));
+          const ms = getMatchStatus1v1(champ.id, p.id);
+          const stTxt = ms.diff === 0 ? 'ALL SQUARE' : ms.diff > 0 ? `${champ.name.split(' ')[0]} ${ms.diff}UP` : `${p.name.split(' ')[0]} ${Math.abs(ms.diff)}UP`;
+          matchRows.push({ label: `👑 ${champ.name} vs ${p.name}`, status: stTxt, results, type: '1v1', champId: champ.id });
+      });
+  } else if (fmt === "team") {
+      const allR = Array.from({length:18}, (_, i) => window.getTeamHoleResultDynamic(i));
+      let wins = {}; window.config.teamsList.forEach(t => wins[t.id] = 0);
+      let halves = 0;
+      allR.forEach(r => { if (r === 'halve') halves++; else if (r) wins[r]++; });
+      const sorted = [...window.config.teamsList].sort((a,b) => wins[b.id] - wins[a.id]);
+      const stTxt = wins[sorted[0].id] > (wins[sorted[1]?.id] || 0) ? `${sorted[0].name.toUpperCase()} MENANG (+${wins[sorted[0].id] - wins[sorted[1].id]} Holes)` : 'ALL SQUARE';
+      matchRows.push({ label: 'Team Match', status: stTxt, results: allR, type: 'team' });
+  } else if (fmt === "pairs" && window.config.pairs) {
+      window.config.pairs.forEach(pair => {
+          const p1 = window.players.find(p => p.id === pair.p1);
+          const p2 = window.players.find(p => p.id === pair.p2);
+          if (!p1 || !p2) return;
+          const results = Array.from({length:18}, (_, i) => getHoleResult1v1(p1.id, p2.id, i));
+          const ms = getMatchStatus1v1(p1.id, p2.id);
+          const stTxt = ms.diff === 0 ? 'ALL SQUARE' : ms.diff > 0 ? `${p1.name.split(' ')[0]} ${ms.diff}UP` : `${p2.name.split(' ')[0]} ${Math.abs(ms.diff)}UP`;
+          matchRows.push({ label: `${p1.name} vs ${p2.name}`, status: stTxt, results, type: '1v1' });
+      });
+  } else {
+      window.sysAlert("Format Strokeplay tidak memiliki data match.", "Info", "ℹ️");
+      return;
+  }
+
+  // ─── Build leaderboard ───
+  const lb = [...window.players]
+      .map(p => ({ ...p, gross: window.getGross(p.id), net: window.getNet(p.id), tp: window.getToPar(p.id) }))
+      .filter(p => p.gross > 0).sort((a,b) => a.gross - b.gross);
+
+  const medals = ['🥇','🥈','🥉'];
+
+  // ─── Generate match table rows HTML ───
+  const holeNums = Array.from({length:18}, (_, i) => i+1);
+
+  const matchTableRows = matchRows.map(m => {
+      const cells = m.results.map((r, idx) => {
+          let bg = 'transparent', color = '#555', border = '#ddd', txt = '';
+          if (m.type === '1v1') {
+              if (r === 'p1') { bg = '#e8f0fe'; color = '#1a2744'; border = '#1a2744'; txt = '●'; }
+              else if (r === 'p2') { bg = '#fde8e8'; color = '#c0392b'; border = '#c0392b'; txt = '●'; }
+              else if (r === 'halve') { bg = '#f0f0f0'; color = '#888'; border = '#bbb'; txt = '='; }
+          } else if (m.type === 'team') {
+              if (r && r !== 'halve') {
+                  const tm = window.config.teamsList.find(t => t.id === r);
+                  bg = tm ? tm.color : '#ccc'; color = '#fff'; border = 'transparent'; txt = tm ? tm.name.charAt(0).toUpperCase() : '';
+              } else if (r === 'halve') { bg = '#f0f0f0'; color = '#888'; border = '#bbb'; txt = '='; }
+          }
+          return `<td style="text-align:center; padding:5px 3px; border:1px solid #e8e8e8;">
+              <div style="width:22px; height:22px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; background:${bg}; color:${color}; border:1.5px solid ${border};">${txt}</div>
+          </td>`;
+      }).join('');
+
+      return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px 12px; min-width:170px; border:1px solid #e8e8e8;">
+              <div style="font-size:11px; font-weight:800; color:#1a2744;">${m.label}</div>
+              <div style="font-size:10px; font-weight:700; color:#888; margin-top:2px;">${m.status}</div>
+          </td>
+          ${cells}
+      </tr>`;
+  }).join('');
+
+  // ─── Par row ───
+  const parCells = Array.from({length:18}, (_, i) => `<td style="text-align:center; padding:5px 3px; border:1px solid #e8e8e8; font-size:10px; font-weight:700; color:#666;">${window.config.par ? window.config.par[i] : 4}</td>`).join('');
+
+  // ─── Leaderboard rows ───
+  const lbRows = lb.map((p, i) => {
+      const tp = p.tp !== null ? (p.tp === 0 ? 'E' : p.tp > 0 ? `+${p.tp}` : `${p.tp}`) : '—';
+      const tpColor = p.tp === null ? '#aaa' : p.tp < 0 ? '#27ae60' : p.tp > 0 ? '#e74c3c' : '#333';
+      const medal = i < 3 ? medals[i] : `${i+1}.`;
+      return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:6px 10px; font-weight:800; font-size:13px;">${medal}</td>
+          <td style="padding:6px 10px; font-weight:700; font-size:12px;">${p.name}</td>
+          <td style="padding:6px 10px; text-align:center; font-size:11px; color:#666;">${p.hc}</td>
+          <td style="padding:6px 10px; text-align:center; font-size:11px; color:#666;">${p.cart || '-'}</td>
+          <td style="padding:6px 10px; text-align:center; font-weight:800; font-size:14px; color:#1a2744;">${p.gross}</td>
+          <td style="padding:6px 10px; text-align:center; font-size:12px;">${p.net !== null ? p.net : '—'}</td>
+          <td style="padding:6px 10px; text-align:center; font-weight:700; font-size:12px; color:${tpColor};">${tp}</td>
+      </tr>`;
+  }).join('');
+
+  // ─── Summary box ───
+  let summaryHtml = '';
+  if (fmt === 'team') {
+      const allR2 = Array.from({length:18}, (_,i) => window.getTeamHoleResultDynamic(i));
+      let wins2 = {}; window.config.teamsList.forEach(t => wins2[t.id] = 0);
+      let halves2 = 0;
+      allR2.forEach(r => { if (r === 'halve') halves2++; else if (r) wins2[r]++; });
+      const teamItems = window.config.teamsList.map(t => `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; font-size:12px;"><span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${t.color}; margin-right:6px;"></span><b>${t.name}</b></span><span style="font-weight:800; color:#1a2744;">${wins2[t.id]} Holes Won</span></div>`).join('');
+      summaryHtml = teamItems + `<div style="text-align:center; font-size:11px; color:#aaa; margin-top:6px;">Halves (Draw): ${halves2}</div>`;
+  } else if (fmt === 'one_vs_all' && window.config.champion) {
+      const champ2 = window.players.find(p => p.id === window.config.champion) || window.players[0];
+      let cw=0, ow=0, hv=0;
+      for (let h=0; h<18; h++) {
+          const cs = window.scores[champ2.id]?.[h];
+          const opps2 = window.players.filter(p => p.id !== champ2.id);
+          let bestOpp = Infinity;
+          opps2.forEach(p => { const s = window.scores[p.id]?.[h]; if(s&&s>0&&s<bestOpp) bestOpp=s; });
+          if(cs&&cs>0&&bestOpp!==Infinity){ if(cs<bestOpp) cw++; else if(bestOpp<cs) ow++; else hv++; }
+      }
+      const diff2 = cw - ow;
+      const outTxt = diff2===0 ? 'ALL SQUARE' : diff2>0 ? `${champ2.name.toUpperCase()} ${diff2}UP` : `OPPONENTS ${Math.abs(diff2)}UP`;
+      summaryHtml = `<div style="font-size:13px; font-weight:800; color:${diff2>0?'#27ae60':diff2<0?'#e74c3c':'#888'}; text-align:center; margin-bottom:8px;">🏆 ${outTxt}</div>
+          <div style="font-size:11px; color:#888; text-align:center; line-height:1.8;">👑 ${champ2.name} (Ch.): <b>${cw} holes won</b> &nbsp;·&nbsp; Opponents: <b>${ow} holes won</b> &nbsp;·&nbsp; Halves: <b>${hv}</b></div>`;
+  } else if (fmt === 'pairs' && window.config.pairs) {
+      summaryHtml = window.config.pairs.map(pair => {
+          const p1b = window.players.find(p => p.id === pair.p1);
+          const p2b = window.players.find(p => p.id === pair.p2);
+          if(!p1b||!p2b) return '';
+          const msb = getMatchStatus1v1(p1b.id, p2b.id);
+          const res = msb.diff===0?'All Square':msb.diff>0?`${p1b.name} Menang (${msb.diff} UP)`:`${p2b.name} Menang (${Math.abs(msb.diff)} UP)`;
+          return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; font-size:12px;"><span>⚔️ ${p1b.name} vs ${p2b.name}</span><span style="font-weight:700; color:#1a2744;">${res}</span></div>`;
+      }).join('');
+  }
+
+  // ─── Hole numbers header ───
+  const thHoles = holeNums.map(n => `<th style="text-align:center; padding:6px 3px; min-width:30px; font-size:10px; background:#1a2744; color:#fff; border:1px solid #2d4a8a;">${n}</th>`).join('');
+
+  const eventName = window.config.name || 'Golf Event';
+  const venue = window.config.venue || '-';
+  const date = window.config.date || '-';
+  const now = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+
+  // ─── Full HTML for print ───
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${eventName} - Match Result</title>
+  <style>
+    @page { size: A4 landscape; margin: 12mm 10mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: #fff; color: #222; font-size: 12px; }
+    .page { width: 100%; }
+    /* Header */
+    .hdr { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0 10px 0; border-bottom: 3px solid #1a2744; margin-bottom: 14px; }
+    .hdr-left h1 { font-size: 20px; font-weight: 900; color: #1a2744; letter-spacing: -0.5px; }
+    .hdr-left .sub { font-size: 11px; color: #777; margin-top: 3px; }
+    .hdr-right { text-align: right; font-size: 10px; color: #999; }
+    .hdr-right .badge { background: #c9a227; color: #fff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; margin-bottom: 4px; display: inline-block; }
+    /* Section titles */
+    .sec-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #1a2744; background: #eef2ff; padding: 5px 10px; border-left: 4px solid #1a2744; margin-bottom: 8px; margin-top: 14px; border-radius: 0 4px 4px 0; }
+    /* Match table */
+    .mtable { width: 100%; border-collapse: collapse; margin-bottom: 4px; table-layout: fixed; }
+    .mtable th, .mtable td { border: 1px solid #e8e8e8; }
+    .mtable .first-col { width: 185px; }
+    /* Two-column layout */
+    .two-col { display: flex; gap: 16px; margin-top: 14px; }
+    .col-left { flex: 1.3; }
+    .col-right { flex: 1; }
+    /* Summary box */
+    .summary-box { border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 12px 14px; background: #fafafa; }
+    /* Leaderboard table */
+    .lb-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .lb-table th { background: #1a2744; color: #fff; padding: 5px 8px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .lb-table td { padding: 5px 8px; border-bottom: 1px solid #eee; }
+    .lb-table tr:nth-child(1) td { background: #fffbec; }
+    .lb-table tr:nth-child(2) td { background: #f8f8f8; }
+    .lb-table tr:nth-child(3) td { background: #f5f0e8; }
+    /* Footer */
+    .footer { margin-top: 14px; border-top: 1px solid #eee; padding-top: 8px; display: flex; justify-content: space-between; font-size: 9px; color: #bbb; }
+    /* Legend */
+    .legend { display: flex; gap: 12px; margin-bottom: 10px; font-size: 10px; color: #666; align-items: center; }
+    .lchip { display: inline-flex; align-items: center; gap: 4px; }
+    .lbox { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+  </head><body>
+  <div class="page">
+    <div class="hdr">
+      <div class="hdr-left">
+        <h1>⛳ ${eventName}</h1>
+        <div class="sub">📍 ${venue} &nbsp;·&nbsp; 📅 ${date}</div>
+      </div>
+      <div class="hdr-right">
+        <div class="badge">GolfSync PRO</div><br>
+        Dicetak: ${date} pukul ${now}
+      </div>
+    </div>
+
+    <div class="sec-title">📊 Match Score — Hole by Hole</div>
+
+    <div class="legend">
+      <span class="lchip"><span class="lbox" style="background:#e8f0fe; border:1.5px solid #1a2744;"></span> Player 1 / Champion Menang</span>
+      <span class="lchip"><span class="lbox" style="background:#fde8e8; border:1.5px solid #c0392b;"></span> Player 2 / Opponent Menang</span>
+      <span class="lchip"><span class="lbox" style="background:#f0f0f0; border:1.5px solid #bbb;"></span> = Halve / Seri</span>
+      <span class="lchip"><span class="lbox" style="background:transparent; border:1px dashed #ccc;"></span> Belum Input</span>
+    </div>
+
+    <table class="mtable">
+      <thead><tr>
+        <th class="first-col" style="text-align:left; padding:6px 10px; background:#1a2744; color:#fff; font-size:10px;">Versus</th>
+        ${thHoles}
+      </tr></thead>
+      <tbody>
+        <tr style="background:#f7f8fa;">
+          <td style="padding:5px 10px; font-size:9px; font-weight:700; color:#999; border:1px solid #e8e8e8;">Par</td>
+          ${parCells}
+        </tr>
+        ${matchTableRows}
+      </tbody>
+    </table>
+
+    <div class="two-col">
+      <div class="col-left">
+        <div class="sec-title">🏆 Leaderboard</div>
+        <table class="lb-table">
+          <thead><tr>
+            <th style="width:32px">#</th><th>Nama</th><th style="width:30px">HC</th><th>Cart</th>
+            <th style="width:46px">Gross</th><th style="width:40px">Net</th><th style="width:46px">vs Par</th>
+          </tr></thead>
+          <tbody>${lbRows}</tbody>
+        </table>
+      </div>
+      <div class="col-right">
+        <div class="sec-title">⚖️ Hasil Akhir Match</div>
+        <div class="summary-box">${summaryHtml || '<div style="color:#aaa; font-size:11px; text-align:center;">Belum ada data match.</div>'}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Powered by GolfSync PRO 🏌️</span>
+      <span>Format: ${fmt === 'one_vs_all' ? '1 vs All (Champion)' : fmt === 'team' ? 'Team Match' : fmt === 'pairs' ? 'Custom Pairs' : 'Strokeplay'} &nbsp;·&nbsp; Players: ${window.players.length}</span>
+    </div>
+  </div>
+  <script>window.onload = function() { window.print(); }<\/script>
+  </body></html>`;
+
+  const pw = window.open('', '_blank', 'width=1200,height=750');
+  if (!pw) {
+      window.sysAlert("Popup diblokir oleh browser. Izinkan popup untuk halaman ini terlebih dahulu.", "Popup Diblokir", "⚠️");
+      return;
+  }
+  pw.document.open();
+  pw.document.write(html);
+  pw.document.close();
 }
 
 // SETUP UI
