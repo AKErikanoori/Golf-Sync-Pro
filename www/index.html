@@ -709,28 +709,15 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 // =========================================================================
-// 🔴 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
+// 🟢 1. KONFIGURASI SUPABASE
 // =========================================================================
-const myFirebaseConfig = {
-  apiKey: "AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M",
-  authDomain: "golfsync-e8ac5.firebaseapp.com",
-  projectId: "golfsync-e8ac5",
-  storageBucket: "golfsync-e8ac5.firebasestorage.app",
-  messagingSenderId: "604105263757",
-  appId: "1:604105263757:web:6d28dfb6d3b276c264b0c4",
-  measurementId: "G-EW77HZ2MHY"
-};
+const SUPABASE_URL = "https://neycfsdyljbggwutoarg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5leWNmc2R5bGpiZ2d3dXRvYXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NzM0MzgsImV4cCI6MjEwMTU0OTQzOH0.rCUR_A1d8n-VnsYWw9cYcyuNz3mUgns8jRWbu4GbMEg";
 
-const firebaseConfig = (myFirebaseConfig.apiKey !== "API_KEY_ANDA") ? myFirebaseConfig : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = (myFirebaseConfig.apiKey !== "API_KEY_ANDA") ? myFirebaseConfig.projectId : (typeof __app_id !== 'undefined' ? __app_id : 'default-golf-app-id');
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ====== i18n / MULTI-LANGUAGE SYSTEM ======
 const i18n = {
@@ -930,8 +917,7 @@ const TEAM_COLORS = ['#1a2744', '#a82929', '#2e7d32', '#c9a227', '#6d28d9', '#c2
 
 // === GLOBAL STATE ===
 let currentUser = null;
-let unsubSnapshot = null;
-let liveUnsubSnapshot = null;
+let liveUnsubChannel = null;
 let isPremium = false;
 
 window.scoreInputMode = 'gross';
@@ -964,7 +950,7 @@ window.getBlankConfig = (dateStr) => {
 };
 
 // ==== LOGIKA HUB (NEW & JOIN) ====
-window.tourHubNew = () => {
+window.tourHubNew = async () => {
     if (!currentUser || currentUser.email !== 'alfin.armadani@sugity.co.id') {
         window.sysAlert(
             "Fitur Host tidak tersedia untuk akun Anda.",
@@ -985,23 +971,25 @@ window.tourHubNew = () => {
     
     setSyncStatus("connecting", "Membuka Room...");
     
-    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', code);
-    
-    setDoc(liveDocRef, { 
-        config: window.config, 
-        players: window.players, 
-        scores: window.scores,
-        creatorId: currentUser ? currentUser.uid : null
-    }).then(() => {
-        window.addRecentTournament(code, window.config.name, window.config.date, 'host');
-        window.listenToLiveRoom();
-        window.showScreen('app-tournament');
-        window.switchTourTab('setup');
-    }).catch((e) => {
-        console.error(e);
-        window.sysAlert("Error Permissions Firebase: " + e.message, "Akses Ditolak", "❌");
-        setSyncStatus("error", "Error Database");
+    const { error } = await supabase.from('shared_tournaments').insert({
+        code: code,
+        creator_id: currentUser ? currentUser.id : null,
+        config: window.config,
+        players: window.players,
+        scores: window.scores
     });
+
+    if (error) {
+        console.error("Supabase Error:", error);
+        window.sysAlert("Gagal membuat room di Supabase: " + error.message, "Akses Ditolak", "❌");
+        setSyncStatus("error", "Error Database");
+        return;
+    }
+
+    await window.addRecentTournament(code, window.config.name, window.config.date, 'host');
+    window.listenToLiveRoom();
+    window.showScreen('app-tournament');
+    window.switchTourTab('setup');
 };
 
 window.tourHubJoinPrompt = () => {
@@ -1022,49 +1010,72 @@ window.tourHubJoin = (code) => {
     window.listenToLiveRoom(true);
 };
 
-window.listenToLiveRoom = (isJoining = false) => {
-    if(liveUnsubSnapshot) liveUnsubSnapshot();
-    
-    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', window.currentLiveTourId);
+window.listenToLiveRoom = async (isJoining = false) => {
+    if (liveUnsubChannel) { supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null; }
     
     setSyncStatus("connecting", "Menghubungkan...");
     
-    liveUnsubSnapshot = onSnapshot(liveDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            window.config = data.config || window.getBlankConfig(window.currentDate);
-            window.players = data.players || [];
-            window.scores = data.scores || {};
-            cfgFormat = window.config.format || "strokeplay";
-            
-            // Tentukan apakah Guest atau Host berdasarkan creatorId dan pembatasan email
-            if (currentUser && currentUser.email === 'alfin.armadani@sugity.co.id' && data.creatorId === currentUser.uid) {
-                window.isGuest = false;
-                window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'host');
-            } else {
-                window.isGuest = true;
-                window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'guest');
-            }
-            
-            if (isJoining && document.getElementById('app-tournament').style.display !== 'block') {
-                window.showScreen('app-tournament');
-                window.switchTourTab('setup');
-            }
-            if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
-            setSyncStatus("connected", "🟢 Live OK");
-        } else {
-            if (isJoining) {
-                window.sysAlert("Turnamen tidak ditemukan! Periksa kembali kodenya.", "Error", "❌");
-                window.currentLiveTourId = null;
-                if(liveUnsubSnapshot) liveUnsubSnapshot();
-                window.showScreen('view-tour-hub');
-            }
+    const { data, error } = await supabase
+        .from('shared_tournaments')
+        .select('*')
+        .eq('code', window.currentLiveTourId)
+        .maybeSingle();
+
+    if (error || !data) {
+        if (isJoining) {
+            window.sysAlert("Turnamen tidak ditemukan! Periksa kembali kodenya.", "Error", "❌");
+            window.currentLiveTourId = null;
+            window.showScreen('view-tour-hub');
         }
-    }, (error) => {
-        console.error("Live Sync Error:", error);
-        window.sysAlert("Gagal terhubung ke database. " + error.message, "Akses Ditolak", "❌");
-    });
+        return;
+    }
+
+    applyTourData(data, isJoining);
+
+    // Subscribe ke Realtime Postgres Changes
+    liveUnsubChannel = supabase
+        .channel(`room:${window.currentLiveTourId}`)
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'shared_tournaments',
+            filter: `code=eq.${window.currentLiveTourId}`
+        }, (payload) => {
+            if (payload.eventType === 'DELETE') {
+                window.sysAlert("Turnamen ini telah ditutup/dihapus oleh Host.", "Room Ditutup", "ℹ️");
+                window.goToDashboard();
+            } else if (payload.new) {
+                applyTourData(payload.new, false);
+            }
+        })
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                setSyncStatus("connected", "🟢 Live OK");
+            }
+        });
 };
+
+function applyTourData(data, isJoining) {
+    window.config = data.config || window.getBlankConfig(window.currentDate);
+    window.players = data.players || [];
+    window.scores = data.scores || {};
+    cfgFormat = window.config.format || "strokeplay";
+    
+    if (currentUser && currentUser.email === 'alfin.armadani@sugity.co.id' && data.creator_id === currentUser.id) {
+        window.isGuest = false;
+        window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'host');
+    } else {
+        window.isGuest = true;
+        window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'guest');
+    }
+    
+    if (isJoining && document.getElementById('app-tournament').style.display !== 'block') {
+        window.showScreen('app-tournament');
+        window.switchTourTab('setup');
+    }
+    if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
+    setSyncStatus("connected", "🟢 Live OK");
+}
 
 
 // ==== LOGIKA RECENT TOURNAMENTS ====
@@ -1082,10 +1093,7 @@ window.addRecentTournament = async (code, name, date, role) => {
     if (window.personalData.recentTournaments.length > 20) {
         window.personalData.recentTournaments = window.personalData.recentTournaments.slice(0, 20);
     }
-    if (currentUser) {
-        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-    }
+    await window.saveUserProfile();
     window.renderTourHub();
 };
 
@@ -1102,17 +1110,13 @@ window.deleteRecentTournament = async (code, event) => {
             // Jika Host, hapus juga dari Firestore server
             if (isHost) {
                 try {
-                    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', code);
-                    await deleteDoc(liveDocRef);
+                    await supabase.from('shared_tournaments').delete().eq('code', code);
                 } catch(e) {
                     console.error("Gagal hapus dari server:", e);
                 }
             }
             window.personalData.recentTournaments = window.personalData.recentTournaments.filter(t => t.code !== code);
-            if (currentUser) {
-                const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-                await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-            }
+            await window.saveUserProfile();
             window.renderTourHub();
         },
         isHost ? "Hapus + Tutup Room" : "Hapus dari Daftar", "🗑️", "modal-btn-danger"
@@ -1176,8 +1180,7 @@ window.toggleLinkedPlayer = async (pid) => {
     
     if (currentUser) {
         window.updateLinkedHistory();
-        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+        await window.saveUserProfile();
     }
 };
 
@@ -1220,7 +1223,6 @@ window.toggleLoginLoading = (isLoading) => {
 };
 
 window.triggerLogin = async () => {
-    // BLOKIR LOGIN GOOGLE JIKA DI BUKA DI APK ANDROID
     if (typeof window.Capacitor !== 'undefined' && window.Capacitor.isNative) {
         window.sysAlert("Login Google tidak didukung di Aplikasi Android. Silakan gunakan fitur <b>Login via Email</b> di bawah.", "Gunakan Email", "📧");
         return;
@@ -1228,26 +1230,14 @@ window.triggerLogin = async () => {
 
     window.toggleLoginLoading(true);
     
-    try {
-        const isLocalFile = window.location.protocol === 'file:';
-        const isIframe = window.self !== window.top;
-        const isSandbox = window.location.hostname.includes('usercontent.goog');
-
-        if (isLocalFile || isIframe || isSandbox) {
-            await signInAnonymously(auth); return;
-        }
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-    } catch (e) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+    });
+    
+    if (error) {
         window.toggleLoginLoading(false);
-        if (e.code === 'auth/unauthorized-domain') {
-            try {
-                window.toggleLoginLoading(true);
-                await signInAnonymously(auth);
-            } catch(err) { window.toggleLoginLoading(false); }
-        } else if (e.code !== 'auth/popup-closed-by-user') {
-            window.sysAlert("Gagal login dengan Google!<br><br>Pesan Error: " + e.message, "Login Gagal", "⚠️");
-        }
+        window.sysAlert("Gagal login dengan Google: " + error.message, "Login Gagal", "⚠️");
     }
 };
 
@@ -1257,12 +1247,11 @@ window.triggerEmailLogin = async () => {
     if(!email || !password) { window.sysAlert("Email dan Kata Sandi wajib diisi!", "Info", "⚠️"); return; }
     
     window.toggleLoginLoading(true);
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (e) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
         window.toggleLoginLoading(false);
-        let msg = e.message;
-        if(e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') msg = "Email atau Kata Sandi salah.";
+        let msg = error.message;
+        if(error.status === 400 || msg.includes('Invalid login credentials')) msg = "Email atau Kata Sandi salah.";
         window.sysAlert("Gagal masuk: " + msg, "Login Gagal", "❌");
     }
 };
@@ -1274,26 +1263,28 @@ window.triggerEmailRegister = async () => {
     if(password.length < 6) { window.sysAlert("Kata Sandi minimal 6 karakter!", "Info", "⚠️"); return; }
     
     window.toggleLoginLoading(true);
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        window.sysAlert("Akun berhasil dibuat! Anda sekarang otomatis masuk.", "Sukses", "✅");
-    } catch (e) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
         window.toggleLoginLoading(false);
-        let msg = e.message;
-        if(e.code === 'auth/email-already-in-use') msg = "Email ini sudah terdaftar. Silakan gunakan tombol Masuk.";
+        let msg = error.message;
+        if(msg.includes('User already registered')) msg = "Email ini sudah terdaftar. Silakan gunakan tombol Masuk.";
         window.sysAlert("Gagal mendaftar: " + msg, "Daftar Gagal", "❌");
+    } else {
+        window.toggleLoginLoading(false);
+        window.sysAlert("Akun berhasil dibuat! Silakan gunakan tombol <b>Masuk</b>.", "Sukses", "✅");
     }
 };
 
 window.triggerLogout = async () => {
     window.sysConfirm("Keluar / Logout dari akun Anda?", async () => {
         window.currentLiveTourId = null;
-        if(liveUnsubSnapshot) { liveUnsubSnapshot(); liveUnsubSnapshot = null; }
-        await signOut(auth);
+        if(liveUnsubChannel) { supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null; }
+        await supabase.auth.signOut();
     }, window.t('logout'), "🚪", "modal-btn-danger");
 };
 
-onAuthStateChanged(auth, (user) => {
+supabase.auth.onAuthStateChange(async (event, session) => {
+    const user = session?.user || null;
     if (user) {
         currentUser = user;
         document.body.classList.add('on-login-or-dash');
@@ -1305,20 +1296,17 @@ onAuthStateChanged(auth, (user) => {
         
         if (welcomeEl) {
             let name = "Golfer";
-            if (user.displayName) {
-                name = user.displayName.split(' ')[0];
+            if (user.user_metadata?.full_name) {
+                name = user.user_metadata.full_name.split(' ')[0];
             } else if (user.email) {
                 name = user.email.split('@')[0];
             }
             welcomeEl.textContent = `Halo, ${name}!`;
-            
-            if(avatarEl) {
-                avatarEl.textContent = name.charAt(0).toUpperCase();
-            }
+            if(avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
         }
         if (emailEl) emailEl.textContent = user.email || 'Mode Anonim';
 
-        loadUserData(user.uid);
+        loadUserData(user.id);
     } else {
         currentUser = null;
         document.body.classList.add('on-login-or-dash');
@@ -1330,8 +1318,7 @@ onAuthStateChanged(auth, (user) => {
         if(passInput) passInput.value = '';
         
         window.showScreen('view-login');
-        if(unsubSnapshot) unsubSnapshot();
-        if(liveUnsubSnapshot) liveUnsubSnapshot();
+        if(liveUnsubChannel) { supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null; }
     }
 });
 
@@ -1343,8 +1330,8 @@ window.showScreen = (screenId) => {
 };
 
 window.goToDashboard = () => { 
-    if(window.currentLiveTourId && liveUnsubSnapshot) {
-        liveUnsubSnapshot(); liveUnsubSnapshot = null;
+    if(window.currentLiveTourId && liveUnsubChannel) {
+        supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null;
         window.currentLiveTourId = null;
     }
     window.showScreen('view-dashboard'); 
@@ -1360,17 +1347,6 @@ window.openMode = (mode) => {
   }
 };
 
-// ===== CLOUD FIRESTORE LOGIC =====
-function applyPrivateTourData(dateKey) {
-    if (window.tournaments[dateKey]) {
-        window.config = window.tournaments[dateKey].config;
-        window.players = window.tournaments[dateKey].players;
-        window.scores = window.tournaments[dateKey].scores || {};
-    } else {
-        window.config = window.getBlankConfig(dateKey);
-        window.players = [];
-        window.scores = {};
-        window.tournaments[dateKey] = { config: window.config, players: window.players, scores: window.scores };
     }
     cfgFormat = window.config.format || "strokeplay";
     if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
@@ -1547,10 +1523,7 @@ window.saveNewRound = async () => {
     document.getElementById('formModal').style.display = 'none';
     window.renderPersonalApp();
     
-    if(currentUser) {
-        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-    }
+    await window.saveUserProfile();
 }
 window.deletePersonalRound = (id) => {
     window.sysConfirm("Delete?", async () => {
@@ -1564,10 +1537,7 @@ window.deletePersonalRound = (id) => {
         window.closeRoundDetail();
         window.renderPersonalApp();
         
-        if(currentUser) {
-            const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-            await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-        }
+        await window.saveUserProfile();
     }, "Delete", "🗑️", "modal-btn-danger");
 }
 
@@ -1641,19 +1611,13 @@ window.saveNewDrive = async () => {
     document.getElementById('driveModal').style.display = 'none';
     window.renderPersonalApp();
     
-    if(currentUser) {
-        const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-        await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-    }
+    await window.saveUserProfile();
 }
 window.deleteDrive = (id) => {
     window.sysConfirm("Delete?", async () => {
         window.personalData.driving = window.personalData.driving.filter(r => r.id !== id);
         window.renderPersonalApp();
-        if(currentUser) {
-            const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-            await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
-        }
+        await window.saveUserProfile();
     });
 }
 window.recalculateHandicap = () => {
@@ -1751,12 +1715,11 @@ window.updateScore = async (pid,hi,val) => {
   window.renderTour();
   window.markDirty();
   
-  await window.saveLiveUpdate({ [`scores.${pid}`]: window.scores[pid] });
+  await window.saveLiveUpdate({ scores: window.scores });
   
   if (currentUser) {
       window.updateLinkedHistory();
-      const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-      await setDoc(privDocRef, { personal: window.personalData }, { merge: true });
+      await window.saveUserProfile();
   }
 }
 
@@ -2965,10 +2928,7 @@ window.unlockPro = async () => {
   document.getElementById("appBody").classList.add("is-premium");
   document.getElementById("btnProUpgrade").style.display = "none";
   window.sysAlert(window.t('msg_success'), "PRO", "🎉");
-  if(currentUser) {
-      const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
-      await setDoc(privDocRef, { isPremium: true }, { merge: true });
-  }
+  await window.saveUserProfile();
   window.renderPlayerEditList();
 }
 
