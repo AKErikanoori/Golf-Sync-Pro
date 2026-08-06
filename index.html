@@ -1415,11 +1415,12 @@ async function loadUserData(uid) {
 // ===== FIREBASE DATA IMPORT TOOL =====
 window.importDataFromFirebase = async () => {
     window.sysConfirm(
-        "Impor riwayat skor & turnamen lama Anda dari Firebase ke Supabase?<br><br><small style='color:var(--muted)'>Semua riwayat ronde & driving akan otomatis dipindahkan dan digabungkan.</small>",
+        "Impor riwayat skor & turnamen lama Anda dari Firebase ke Supabase?<br><br><small style='color:var(--muted)'>Aplikasi akan menghubungkan akun Firebase lama Anda dan memindahkan semua riwayat ronde & driving ke Supabase.</small>",
         async () => {
             setSyncStatus("connecting", "Mengimpor dari Firebase...");
             try {
                 const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
                 const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
                 
                 const fbConfig = {
@@ -1432,18 +1433,34 @@ window.importDataFromFirebase = async () => {
                 };
                 
                 const fbApp = initializeApp(fbConfig, "importer_" + Date.now());
+                const fbAuth = getAuth(fbApp);
                 const fbDb = getFirestore(fbApp);
                 
                 let docSnap = null;
-                let searchedUid = currentUser ? currentUser.id : null;
+                let fbUid = null;
                 
-                if (searchedUid) {
-                    const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', searchedUid, 'golf_data', 'main');
+                // 1. Coba login ke Firebase Auth lama untuk mengambil UID asli
+                try {
+                    const provider = new GoogleAuthProvider();
+                    const cred = await signInWithPopup(fbAuth, provider);
+                    if (cred && cred.user) {
+                        fbUid = cred.user.uid;
+                    }
+                } catch(errAuth) {
+                    console.log("Firebase popup login skipped/cancelled:", errAuth);
+                }
+                
+                if (!fbUid && currentUser) {
+                    fbUid = currentUser.id;
+                }
+                
+                if (fbUid) {
+                    const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', fbUid, 'golf_data', 'main');
                     docSnap = await getDoc(userRef);
                 }
                 
                 if (!docSnap || !docSnap.exists()) {
-                    const customUid = prompt("Data tidak otomatis ditemukan. Jika Anda ingat UID Firebase lama, silakan ketik di sini (atau batalkan):");
+                    const customUid = prompt("Silakan masukkan ID / UID Firebase lama Anda jika ada (atau klik Batal):");
                     if (customUid && customUid.trim()) {
                         const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', customUid.trim(), 'golf_data', 'main');
                         docSnap = await getDoc(userRef);
