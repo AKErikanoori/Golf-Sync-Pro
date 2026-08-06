@@ -1416,140 +1416,193 @@ async function loadUserData(uid) {
 window.importDataFromFirebase = async () => {
     window.sysConfirm(
         `<div style="text-align:left;">
-            <p style="margin-bottom:12px; font-size:13px; color:var(--text);">Untuk mengimpor data dari Firebase, silakan verifikasi akun Firebase lama Anda:</p>
+            <p style="margin-bottom:12px; font-size:13px; color:var(--text);">Untuk mengimpor data dari Firebase, silakan pilih metode verifikasi akun Firebase lama Anda:</p>
+            
+            <button type="button" id="btnFbGoogleImport" style="width:100%; padding:12px; border-radius:8px; border:1px solid #4285F4; background:#4285F4; color:#fff; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span>🌐</span> Login via Google (Firebase Lama)
+            </button>
+            
+            <div style="text-align:center; font-size:12px; color:var(--muted); margin-bottom:12px;">— ATAU MASUKKAN EMAIL & PASSWORD —</div>
+            
             <label style="font-size:12px; font-weight:bold; color:var(--navy);">Email Firebase Lama:</label>
             <input type="email" id="fbImpEmail" value="${currentUser ? currentUser.email : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin:4px 0 10px 0; font-size:14px;">
             <label style="font-size:12px; font-weight:bold; color:var(--navy);">Kata Sandi Firebase Lama:</label>
-            <input type="password" id="fbImpPass" placeholder="Masukkan password akun Firebase" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin:4px 0 10px 0; font-size:14px;">
+            <input type="password" id="fbImpPass" placeholder="Masukkan password akun Firebase" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin:4px 0 4px 0; font-size:14px;">
+            <div style="font-size:11px; text-align:right; margin-bottom:8px;"><a href="#" id="linkResetFbPass" style="color:var(--gold); text-decoration:underline;">Lupa password Firebase? Kirim Email Reset</a></div>
         </div>`,
         async () => {
             const email = document.getElementById('fbImpEmail').value.trim();
             const password = document.getElementById('fbImpPass').value;
             
-            if (!email) {
-                window.sysAlert("Email Firebase wajib diisi!", "Info", "⚠️");
+            if (!email && !password) {
+                window.sysAlert("Email & Password Firebase wajib diisi!", "Info", "⚠️");
                 return;
             }
             
-            setSyncStatus("connecting", "Mengimpor dari Firebase...");
-            try {
-                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-                const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                
-                const fbConfig = {
-                    apiKey: "AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M",
-                    authDomain: "golfsync-e8ac5.firebaseapp.com",
-                    projectId: "golfsync-e8ac5",
-                    storageBucket: "golfsync-e8ac5.firebasestorage.app",
-                    messagingSenderId: "604105263757",
-                    appId: "1:604105263757:web:6d28dfb6d3b276c264b0c4"
-                };
-                
-                const fbApp = initializeApp(fbConfig, "importer_" + Date.now());
-                const fbAuth = getAuth(fbApp);
-                const fbDb = getFirestore(fbApp);
-                
-                let fbUid = null;
-                
-                // Login ke Firebase Auth lama untuk mendapat izin akses Firestore
-                if (password) {
-                    try {
-                        const cred = await signInWithEmailAndPassword(fbAuth, email, password);
-                        if (cred && cred.user) fbUid = cred.user.uid;
-                    } catch(ePass) {
-                        console.warn("Email pass auth failed:", ePass);
-                    }
-                }
-                
-                if (!fbUid) {
-                    try {
-                        const provider = new GoogleAuthProvider();
-                        const cred = await signInWithPopup(fbAuth, provider);
-                        if (cred && cred.user) fbUid = cred.user.uid;
-                    } catch(ePop) {
-                        console.warn("Google popup auth failed:", ePop);
-                    }
-                }
-                
-                if (!fbUid) {
-                    window.sysAlert("Gagal verifikasi akun Firebase lama. Pastikan Email & Password Firebase benar.", "Gagal Otentikasi", "🔒");
-                    setSyncStatus("connected", "🟢 Sync OK");
+            await doFirebaseImport(email, password, false);
+        },
+        "Verifikasi Email & Impor", "🔄", "modal-btn-confirm"
+    );
+
+    // Event handler untuk tombol Login Google di dalam modal
+    setTimeout(() => {
+        const btnG = document.getElementById('btnFbGoogleImport');
+        if (btnG) {
+            btnG.onclick = async () => {
+                const modal = document.querySelector('.modal-overlay');
+                if (modal) modal.remove();
+                await doFirebaseImport(null, null, true);
+            };
+        }
+        
+        const linkR = document.getElementById('linkResetFbPass');
+        if (linkR) {
+            linkR.onclick = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('fbImpEmail').value.trim();
+                if (!email) {
+                    window.sysAlert("Ketik email Anda di kolom Email terlebih dahulu.", "Reset Password", "ℹ️");
                     return;
                 }
-                
-                const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', fbUid, 'golf_data', 'main');
-                const docSnap = await getDoc(userRef);
-                
-                if (docSnap && docSnap.exists()) {
-                    const fbData = docSnap.data();
-                    const oldPersonal = fbData.personal || {};
-                    const oldHistory = oldPersonal.history || [];
-                    const oldDriving = oldPersonal.driving || [];
-                    const oldRecents = oldPersonal.recentTournaments || [];
-                    
-                    let importedRounds = 0;
-                    oldHistory.forEach(h => {
-                        if (!window.personalData.history.some(x => x.id === h.id || (x.date === h.date && x.venue === h.venue))) {
-                            window.personalData.history.push(h);
-                            importedRounds++;
-                        }
+                try {
+                    const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email: email })
                     });
-                    
-                    let importedDrives = 0;
-                    oldDriving.forEach(d => {
-                        if (!window.personalData.driving.some(x => x.id === d.id || (x.date === d.date && x.venue === d.venue))) {
-                            window.personalData.driving.push(d);
-                            importedDrives++;
-                        }
-                    });
-                    
-                    oldRecents.forEach(r => {
-                        if (!window.personalData.recentTournaments.some(x => x.code === r.code)) {
-                            window.personalData.recentTournaments.push(r);
-                        }
-                    });
-                    
-                    window.recalculateHandicap();
-                    await window.saveUserProfile();
-                    
-                    // Impor room turnamen ke shared_tournaments Supabase
-                    for (const tour of oldRecents) {
-                        try {
-                            const tourRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'public', 'data', 'shared_tournaments', tour.code);
-                            const tSnap = await getDoc(tourRef);
-                            if (tSnap.exists()) {
-                                const tData = tSnap.data();
-                                await supabase.from('shared_tournaments').upsert({
-                                    code: tour.code,
-                                    creator_id: currentUser ? currentUser.id : null,
-                                    config: tData.config || {},
-                                    players: tData.players || [],
-                                    scores: tData.scores || {}
-                                });
-                            }
-                        } catch(eTour) {
-                            console.warn("Tour import error:", eTour);
-                        }
+                    if (res.ok) {
+                        window.sysAlert(`Email reset password Firebase telah dikirim ke <b>${email}</b>. Silakan periksa inbox email Anda!`, "Email Terkirim", "📧");
+                    } else {
+                        window.sysAlert("Gagal mengirim email reset. Pastikan alamat email benar.", "Error", "❌");
                     }
-                    
-                    window.renderPersonalApp();
-                    window.renderTourHub();
-                    setSyncStatus("connected", "🟢 Sync OK");
-                    window.sysAlert(`<b>Migrasi Sukses!</b><br><br>Berhasil mengimpor <b>${importedRounds}</b> ronde main dan <b>${importedDrives}</b> sesi driving dari Firebase ke Supabase.`, "Migrasi Berhasil", "🎉");
-                } else {
-                    window.sysAlert("Tidak ada data riwayat ditemukan pada akun Firebase tersebut.", "Pemberitahuan", "ℹ️");
-                    setSyncStatus("connected", "🟢 Sync OK");
+                } catch(err) {
+                    window.sysAlert("Gagal koneksi reset password: " + err.message, "Error", "❌");
                 }
-            } catch(e) {
-                console.error("Impor error:", e);
-                window.sysAlert("Gagal impor dari Firebase: " + e.message, "Error", "❌");
-                setSyncStatus("error", "Error DB");
-            }
-        },
-        "Verifikasi & Impor", "🔄", "modal-btn-confirm"
-    );
+            };
+        }
+    }, 100);
 };
+
+async function doFirebaseImport(email, password, useGooglePopup) {
+    setSyncStatus("connecting", "Mengimpor dari Firebase...");
+    try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+        const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        const fbConfig = {
+            apiKey: "AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M",
+            authDomain: "golfsync-e8ac5.firebaseapp.com",
+            projectId: "golfsync-e8ac5",
+            storageBucket: "golfsync-e8ac5.firebasestorage.app",
+            messagingSenderId: "604105263757",
+            appId: "1:604105263757:web:6d28dfb6d3b276c264b0c4"
+        };
+        
+        const fbApp = initializeApp(fbConfig, "importer_" + Date.now());
+        const fbAuth = getAuth(fbApp);
+        const fbDb = getFirestore(fbApp);
+        
+        let fbUid = null;
+        
+        if (useGooglePopup) {
+            try {
+                const provider = new GoogleAuthProvider();
+                const cred = await signInWithPopup(fbAuth, provider);
+                if (cred && cred.user) fbUid = cred.user.uid;
+            } catch(ePop) {
+                console.warn("Google popup auth failed:", ePop);
+                window.sysAlert("Login Google Firebase dibatalkan / gagal: " + ePop.message, "Error", "⚠️");
+                setSyncStatus("connected", "🟢 Sync OK");
+                return;
+            }
+        } else if (password && email) {
+            try {
+                const cred = await signInWithEmailAndPassword(fbAuth, email, password);
+                if (cred && cred.user) fbUid = cred.user.uid;
+            } catch(ePass) {
+                console.warn("Email pass auth failed:", ePass);
+                window.sysAlert("Password / Email Firebase salah. Silakan coba lagi atau gunakan Reset Password.", "Gagal Auth", "❌");
+                setSyncStatus("connected", "🟢 Sync OK");
+                return;
+            }
+        }
+        
+        if (!fbUid) {
+            window.sysAlert("Gagal verifikasi akun Firebase lama.", "Gagal Otentikasi", "🔒");
+            setSyncStatus("connected", "🟢 Sync OK");
+            return;
+        }
+        
+        const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', fbUid, 'golf_data', 'main');
+        const docSnap = await getDoc(userRef);
+        
+        if (docSnap && docSnap.exists()) {
+            const fbData = docSnap.data();
+            const oldPersonal = fbData.personal || {};
+            const oldHistory = oldPersonal.history || [];
+            const oldDriving = oldPersonal.driving || [];
+            const oldRecents = oldPersonal.recentTournaments || [];
+            
+            let importedRounds = 0;
+            oldHistory.forEach(h => {
+                if (!window.personalData.history.some(x => x.id === h.id || (x.date === h.date && x.venue === h.venue))) {
+                    window.personalData.history.push(h);
+                    importedRounds++;
+                }
+            });
+            
+            let importedDrives = 0;
+            oldDriving.forEach(d => {
+                if (!window.personalData.driving.some(x => x.id === d.id || (x.date === d.date && x.venue === d.venue))) {
+                    window.personalData.driving.push(d);
+                    importedDrives++;
+                }
+            });
+            
+            oldRecents.forEach(r => {
+                if (!window.personalData.recentTournaments.some(x => x.code === r.code)) {
+                    window.personalData.recentTournaments.push(r);
+                }
+            });
+            
+            window.recalculateHandicap();
+            await window.saveUserProfile();
+            
+            // Impor room turnamen ke shared_tournaments Supabase
+            for (const tour of oldRecents) {
+                try {
+                    const tourRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'public', 'data', 'shared_tournaments', tour.code);
+                    const tSnap = await getDoc(tourRef);
+                    if (tSnap.exists()) {
+                        const tData = tSnap.data();
+                        await supabase.from('shared_tournaments').upsert({
+                            code: tour.code,
+                            creator_id: currentUser ? currentUser.id : null,
+                            config: tData.config || {},
+                            players: tData.players || [],
+                            scores: tData.scores || {}
+                        });
+                    }
+                } catch(eTour) {
+                    console.warn("Tour import error:", eTour);
+                }
+            }
+            
+            window.renderPersonalApp();
+            window.renderTourHub();
+            setSyncStatus("connected", "🟢 Sync OK");
+            window.sysAlert(`<b>Migrasi Sukses!</b><br><br>Berhasil mengimpor <b>${importedRounds}</b> ronde main dan <b>${importedDrives}</b> sesi driving dari Firebase ke Supabase.`, "Migrasi Berhasil", "🎉");
+        } else {
+            window.sysAlert("Tidak ada data riwayat ditemukan pada akun Firebase tersebut.", "Pemberitahuan", "ℹ️");
+            setSyncStatus("connected", "🟢 Sync OK");
+        }
+    } catch(e) {
+        console.error("Impor error:", e);
+        window.sysAlert("Gagal impor dari Firebase: " + e.message, "Error", "❌");
+        setSyncStatus("error", "Error DB");
+    }
+}
 
 window.updateLinkedHistory = () => {
     if(!window.currentLiveTourId) return;
