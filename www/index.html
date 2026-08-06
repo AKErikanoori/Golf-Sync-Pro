@@ -351,6 +351,12 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
             <div class="dc-desc" data-i18n="personal_desc">Catat riwayat skor, progres latihan driving, dan kalkulasi Handicap Index.</div>
         </div>
       </div>
+
+      <div style="margin-top: 8px;">
+        <button class="auth-btn btn-outline" style="width: 100%; border-color: rgba(26,39,68,0.2); color: var(--navy); font-size: 13px; padding: 12px; border-radius: 16px; font-weight: 700; background: #fff; box-shadow: 0 4px 15px rgba(26, 39, 68, 0.03);" onclick="window.importDataFromFirebase()">
+          🔄 Impor Data Lama dari Firebase
+        </button>
+      </div>
     </div>
     
   </div>
@@ -1347,19 +1353,39 @@ window.openMode = (mode) => {
   }
 };
 
+// ===== SUPABASE USER PROFILE LOGIC =====
+window.saveUserProfile = async () => {
+    if (currentUser) {
+        try {
+            await supabase.from('user_profiles').upsert({
+                id: currentUser.id,
+                is_premium: isPremium,
+                personal: window.personalData,
+                updated_at: new Date().toISOString()
+            });
+        } catch(e) {
+            console.error("Gagal simpan profil ke Supabase:", e);
+        }
     }
-    cfgFormat = window.config.format || "strokeplay";
-    if(document.getElementById('app-tournament').style.display === 'block') window.renderTour();
-}
+};
 
-function loadUserData(uid) {
+async function loadUserData(uid) {
     setSyncStatus("connecting", window.t('connecting'));
-    const docRef = doc(db, 'artifacts', appId, 'users', uid, 'golf_data', 'main'); 
-    
-    unsubSnapshot = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            isPremium = data.isPremium || false;
+    try {
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', uid)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Profile load error:", error);
+            setSyncStatus("error", "🔴 DB Error");
+            return;
+        }
+
+        if (data) {
+            isPremium = data.is_premium || false;
             window.personalData = data.personal || { handicap: 0, history: [], driving: [], linkedPlayers: {}, recentTournaments: [] };
             if (!window.personalData.linkedPlayers) window.personalData.linkedPlayers = {};
             if (!window.personalData.recentTournaments) window.personalData.recentTournaments = [];
@@ -1372,9 +1398,122 @@ function loadUserData(uid) {
             setSyncStatus("connected", "🟢 Sync OK");
         } else {
             window.personalData = { handicap: 0, history: [], driving: [], linkedPlayers: {}, recentTournaments: [] };
+            await window.saveUserProfile();
+            setSyncStatus("connected", "🟢 Sync OK");
         }
-    }, (error) => { setSyncStatus("error", "🔴 DB Error"); });
+    } catch(err) {
+        console.error("Profile exception:", err);
+        setSyncStatus("error", "🔴 DB Error");
+    }
 }
+
+// ===== FIREBASE DATA IMPORT TOOL =====
+window.importDataFromFirebase = async () => {
+    window.sysConfirm(
+        "Impor riwayat skor & turnamen lama Anda dari Firebase ke Supabase?<br><br><small style='color:var(--muted)'>Semua riwayat ronde & driving akan otomatis dipindahkan dan digabungkan.</small>",
+        async () => {
+            setSyncStatus("connecting", "Mengimpor dari Firebase...");
+            try {
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                
+                const fbConfig = {
+                    apiKey: "AIzaSyAmTW2obN0xHQl70uecWEXoDrys7Xfhv5M",
+                    authDomain: "golfsync-e8ac5.firebaseapp.com",
+                    projectId: "golfsync-e8ac5",
+                    storageBucket: "golfsync-e8ac5.firebasestorage.app",
+                    messagingSenderId: "604105263757",
+                    appId: "1:604105263757:web:6d28dfb6d3b276c264b0c4"
+                };
+                
+                const fbApp = initializeApp(fbConfig, "importer_" + Date.now());
+                const fbDb = getFirestore(fbApp);
+                
+                let docSnap = null;
+                let searchedUid = currentUser ? currentUser.id : null;
+                
+                if (searchedUid) {
+                    const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', searchedUid, 'golf_data', 'main');
+                    docSnap = await getDoc(userRef);
+                }
+                
+                if (!docSnap || !docSnap.exists()) {
+                    const customUid = prompt("Data tidak otomatis ditemukan. Jika Anda ingat UID Firebase lama, silakan ketik di sini (atau batalkan):");
+                    if (customUid && customUid.trim()) {
+                        const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', customUid.trim(), 'golf_data', 'main');
+                        docSnap = await getDoc(userRef);
+                    }
+                }
+                
+                if (docSnap && docSnap.exists()) {
+                    const fbData = docSnap.data();
+                    const oldPersonal = fbData.personal || {};
+                    const oldHistory = oldPersonal.history || [];
+                    const oldDriving = oldPersonal.driving || [];
+                    const oldRecents = oldPersonal.recentTournaments || [];
+                    
+                    let importedRounds = 0;
+                    oldHistory.forEach(h => {
+                        if (!window.personalData.history.some(x => x.id === h.id || (x.date === h.date && x.venue === h.venue))) {
+                            window.personalData.history.push(h);
+                            importedRounds++;
+                        }
+                    });
+                    
+                    let importedDrives = 0;
+                    oldDriving.forEach(d => {
+                        if (!window.personalData.driving.some(x => x.id === d.id || (x.date === d.date && x.venue === d.venue))) {
+                            window.personalData.driving.push(d);
+                            importedDrives++;
+                        }
+                    });
+                    
+                    oldRecents.forEach(r => {
+                        if (!window.personalData.recentTournaments.some(x => x.code === r.code)) {
+                            window.personalData.recentTournaments.push(r);
+                        }
+                    });
+                    
+                    window.recalculateHandicap();
+                    await window.saveUserProfile();
+                    
+                    // Impor room turnamen ke shared_tournaments Supabase
+                    for (const tour of oldRecents) {
+                        try {
+                            const tourRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'public', 'data', 'shared_tournaments', tour.code);
+                            const tSnap = await getDoc(tourRef);
+                            if (tSnap.exists()) {
+                                const tData = tSnap.data();
+                                await supabase.from('shared_tournaments').upsert({
+                                    code: tour.code,
+                                    creator_id: currentUser ? currentUser.id : null,
+                                    config: tData.config || {},
+                                    players: tData.players || [],
+                                    scores: tData.scores || {}
+                                });
+                            }
+                        } catch(eTour) {
+                            console.warn("Tour import error:", eTour);
+                        }
+                    }
+                    
+                    window.renderPersonalApp();
+                    window.renderTourHub();
+                    setSyncStatus("connected", "🟢 Sync OK");
+                    window.sysAlert(`<b>Migrasi Sukses!</b><br><br>Berhasil mengimpor <b>${importedRounds}</b> ronde main dan <b>${importedDrives}</b> sesi driving dari Firebase ke Supabase.`, "Migrasi Berhasil", "🎉");
+                } else {
+                    window.sysAlert("Tidak ada data Firebase ditemukan untuk akun ini.", "Pemberitahuan", "ℹ️");
+                    setSyncStatus("connected", "🟢 Sync OK");
+                }
+            } catch(e) {
+                console.error("Impor error:", e);
+                window.sysAlert("Gagal impor dari Firebase: " + e.message, "Error", "❌");
+                setSyncStatus("error", "Error DB");
+            }
+        },
+        "Mulai Impor", "🔄", "modal-btn-confirm"
+    );
+};
 
 window.updateLinkedHistory = () => {
     if(!window.currentLiveTourId) return;
