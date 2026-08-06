@@ -1415,8 +1415,22 @@ async function loadUserData(uid) {
 // ===== FIREBASE DATA IMPORT TOOL =====
 window.importDataFromFirebase = async () => {
     window.sysConfirm(
-        "Impor riwayat skor & turnamen lama Anda dari Firebase ke Supabase?<br><br><small style='color:var(--muted)'>Aplikasi akan menghubungkan akun Firebase lama Anda dan memindahkan semua riwayat ronde & driving ke Supabase.</small>",
+        `<div style="text-align:left;">
+            <p style="margin-bottom:12px; font-size:13px; color:var(--text);">Untuk mengimpor data dari Firebase, silakan verifikasi akun Firebase lama Anda:</p>
+            <label style="font-size:12px; font-weight:bold; color:var(--navy);">Email Firebase Lama:</label>
+            <input type="email" id="fbImpEmail" value="${currentUser ? currentUser.email : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin:4px 0 10px 0; font-size:14px;">
+            <label style="font-size:12px; font-weight:bold; color:var(--navy);">Kata Sandi Firebase Lama:</label>
+            <input type="password" id="fbImpPass" placeholder="Masukkan password akun Firebase" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin:4px 0 10px 0; font-size:14px;">
+        </div>`,
         async () => {
+            const email = document.getElementById('fbImpEmail').value.trim();
+            const password = document.getElementById('fbImpPass').value;
+            
+            if (!email) {
+                window.sysAlert("Email Firebase wajib diisi!", "Info", "⚠️");
+                return;
+            }
+            
             setSyncStatus("connecting", "Mengimpor dari Firebase...");
             try {
                 const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
@@ -1436,36 +1450,36 @@ window.importDataFromFirebase = async () => {
                 const fbAuth = getAuth(fbApp);
                 const fbDb = getFirestore(fbApp);
                 
-                let docSnap = null;
                 let fbUid = null;
                 
-                // 1. Coba login ke Firebase Auth lama untuk mengambil UID asli
-                try {
-                    const provider = new GoogleAuthProvider();
-                    const cred = await signInWithPopup(fbAuth, provider);
-                    if (cred && cred.user) {
-                        fbUid = cred.user.uid;
-                    }
-                } catch(errAuth) {
-                    console.log("Firebase popup login skipped/cancelled:", errAuth);
-                }
-                
-                if (!fbUid && currentUser) {
-                    fbUid = currentUser.id;
-                }
-                
-                if (fbUid) {
-                    const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', fbUid, 'golf_data', 'main');
-                    docSnap = await getDoc(userRef);
-                }
-                
-                if (!docSnap || !docSnap.exists()) {
-                    const customUid = prompt("Silakan masukkan ID / UID Firebase lama Anda jika ada (atau klik Batal):");
-                    if (customUid && customUid.trim()) {
-                        const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', customUid.trim(), 'golf_data', 'main');
-                        docSnap = await getDoc(userRef);
+                // Login ke Firebase Auth lama untuk mendapat izin akses Firestore
+                if (password) {
+                    try {
+                        const cred = await signInWithEmailAndPassword(fbAuth, email, password);
+                        if (cred && cred.user) fbUid = cred.user.uid;
+                    } catch(ePass) {
+                        console.warn("Email pass auth failed:", ePass);
                     }
                 }
+                
+                if (!fbUid) {
+                    try {
+                        const provider = new GoogleAuthProvider();
+                        const cred = await signInWithPopup(fbAuth, provider);
+                        if (cred && cred.user) fbUid = cred.user.uid;
+                    } catch(ePop) {
+                        console.warn("Google popup auth failed:", ePop);
+                    }
+                }
+                
+                if (!fbUid) {
+                    window.sysAlert("Gagal verifikasi akun Firebase lama. Pastikan Email & Password Firebase benar.", "Gagal Otentikasi", "🔒");
+                    setSyncStatus("connected", "🟢 Sync OK");
+                    return;
+                }
+                
+                const userRef = doc(fbDb, 'artifacts', 'golfsync-e8ac5', 'users', fbUid, 'golf_data', 'main');
+                const docSnap = await getDoc(userRef);
                 
                 if (docSnap && docSnap.exists()) {
                     const fbData = docSnap.data();
@@ -1524,7 +1538,7 @@ window.importDataFromFirebase = async () => {
                     setSyncStatus("connected", "🟢 Sync OK");
                     window.sysAlert(`<b>Migrasi Sukses!</b><br><br>Berhasil mengimpor <b>${importedRounds}</b> ronde main dan <b>${importedDrives}</b> sesi driving dari Firebase ke Supabase.`, "Migrasi Berhasil", "🎉");
                 } else {
-                    window.sysAlert("Tidak ada data Firebase ditemukan untuk akun ini.", "Pemberitahuan", "ℹ️");
+                    window.sysAlert("Tidak ada data riwayat ditemukan pada akun Firebase tersebut.", "Pemberitahuan", "ℹ️");
                     setSyncStatus("connected", "🟢 Sync OK");
                 }
             } catch(e) {
@@ -1533,7 +1547,7 @@ window.importDataFromFirebase = async () => {
                 setSyncStatus("error", "Error DB");
             }
         },
-        "Mulai Impor", "🔄", "modal-btn-confirm"
+        "Verifikasi & Impor", "🔄", "modal-btn-confirm"
     );
 };
 
