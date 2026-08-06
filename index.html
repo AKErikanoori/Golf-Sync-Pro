@@ -706,7 +706,7 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // =========================================================================
 // 🔴 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
@@ -1097,9 +1097,23 @@ window.addRecentTournament = async (code, name, date, role) => {
 
 window.deleteRecentTournament = async (code, event) => {
     event.stopPropagation(); // Jangan trigger join saat tap delete
+    const isHost = (window.personalData.recentTournaments || []).find(t => t.code === code)?.role === 'host';
+    const confirmText = isHost
+        ? `Hapus event <b>${code}</b> dari daftar riwayat Anda?<br><br><b style="color:var(--red)">⚠️ Sebagai Host, data turnamen di server juga akan dihapus dan semua peserta tidak bisa join lagi.</b>`
+        : `Hapus event <b>${code}</b> dari daftar riwayat?`;
+    
     window.sysConfirm(
-        `Hapus event <b>${code}</b> dari daftar riwayat?<br><small style="color:var(--muted)">Data di server tidak akan terhapus.</small>`,
+        confirmText,
         async () => {
+            // Jika Host, hapus juga dari Firestore server
+            if (isHost) {
+                try {
+                    const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', code);
+                    await deleteDoc(liveDocRef);
+                } catch(e) {
+                    console.error("Gagal hapus dari server:", e);
+                }
+            }
             window.personalData.recentTournaments = window.personalData.recentTournaments.filter(t => t.code !== code);
             if (currentUser) {
                 const privDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'golf_data', 'main');
@@ -1107,7 +1121,7 @@ window.deleteRecentTournament = async (code, event) => {
             }
             window.renderTourHub();
         },
-        "Hapus dari Daftar", "🗑️", "modal-btn-danger"
+        isHost ? "Hapus + Tutup Room" : "Hapus dari Daftar", "🗑️", "modal-btn-danger"
     );
 };
 
@@ -1531,7 +1545,7 @@ window.saveNewRound = async () => {
     const par = parseInt(document.getElementById('addRndPar').value) || 72;
     const gross = parseInt(document.getElementById('addRndGross').value);
     
-    if(!gross || gross < 18) { alert("Invalid score!"); return; }
+    if(!gross || gross < 18) { window.sysAlert("Skor tidak valid! Minimum total gross adalah 18.", "Input Tidak Valid", "⚠️"); return; }
     
     window.personalData.history.push({ id: Date.now(), date, venue, par, gross });
     window.recalculateHandicap();
@@ -1698,7 +1712,7 @@ window.updateScoreFromInput = (pid, hi, val) => {
 // ===== TOURNAMENT APP LOGIC =====
 window.getPar = (hi) => { return (window.config.par&&window.config.par[hi])||4; }
 window.getGross = (id) => { return window.scores[id] ? window.scores[id].reduce((a,b)=>(b?a+b:a),0) : 0; }
-window.getNet = (id) => { const g=window.getGross(id); return g?g-window.players.find(p=>p.id===id).hc:null; }
+window.getNet = (id) => { const g=window.getGross(id); const pl=window.players.find(p=>p.id===id); return (g && pl) ? g - (pl.hc || 0) : null; }
 window.getToPar = (id) => {
   let tp=0; let scored=false;
   if(!window.scores[id]) return null;
@@ -2186,9 +2200,18 @@ function renderMatch(){
               const t1 = sortedTeams[0];
               const t2 = sortedTeams[1];
               if (wins[t1.id] > wins[t2.id]) {
-                  teamSummaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--green2); text-align: center; margin-top: 8px;">🏆 PEMENANG: ${t1.name} (+${wins[t1.id] - wins[t2.id]} Holes)</div>`;
+                  const margin = wins[t1.id] - wins[t2.id];
+                  teamSummaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--green2); text-align: center; margin-top: 8px;">🏆 PEMENANG: ${t1.name} (+${margin} Hole${margin>1?'s':''})</div>`;
+              } else if (wins[t1.id] === wins[t2.id]) {
+                  teamSummaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--muted); text-align: center; margin-top: 8px;">⚖️ HASIL AKHIR: SERI (${wins[t1.id]} Holes)</div>`;
               } else {
-                  teamSummaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--muted); text-align: center; margin-top: 8px;">⚖️ HASIL AKHIR: SERI (${wins[t1.id]} vs ${wins[t2.id]} Holes)</div>`;
+                  // Fallback
+                  teamSummaryHtml = `<div style="font-size: 14px; font-weight: 800; color: var(--muted); text-align: center; margin-top: 8px;">⚖️ SERI</div>`;
+              }
+              // Tampilkan rangking semua tim jika > 2
+              if (sortedTeams.length > 2) {
+                  const rankHtml = sortedTeams.map((t, i) => `<span style="font-size:11px; color:var(--muted)">${i+1}. ${t.name} (${wins[t.id]} holes)</span>`).join(' · ');
+                  teamSummaryHtml += `<div style="text-align:center; margin-top:6px;">${rankHtml}</div>`;
               }
           }
           
