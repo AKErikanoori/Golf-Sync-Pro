@@ -6,6 +6,11 @@
 <meta name="theme-color" content="#1a2744">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>GolfSync PRO</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GolfSync PRO">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -960,17 +965,6 @@ window.getBlankConfig = (dateStr) => {
 
 // ==== LOGIKA HUB (NEW & JOIN) ====
 window.tourHubNew = () => {
-    const isBrowser = (window.location.protocol === 'https:' || window.location.protocol === 'http:') && typeof window.Capacitor === 'undefined';
-    
-    if (isBrowser) {
-        window.sysAlert(
-            "Fitur Membuat Turnamen (Host) dan Menambah Player hanya tersedia di <b>Aplikasi GolfSync (Android/iOS)</b>.<br><br>Pada versi Web Browser ini, Anda hanya dapat <b>Gabung Turnamen</b> menggunakan Kode Room yang diberikan oleh Host.", 
-            "Fitur Khusus Aplikasi", 
-            "📱"
-        );
-        return; 
-    }
-
     if (!currentUser || currentUser.email !== 'alfin.armadani@sugity.co.id') {
         window.sysAlert(
             "Fitur Host tidak tersedia untuk akun Anda.",
