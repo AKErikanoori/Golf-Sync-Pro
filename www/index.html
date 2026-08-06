@@ -955,9 +955,14 @@ window.getBlankConfig = (dateStr) => {
     };
 };
 
+window.isHostEmail = (email) => {
+    const HOST_EMAILS = ['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'];
+    return email && HOST_EMAILS.includes(email.toLowerCase());
+};
+
 // ==== LOGIKA HUB (NEW & JOIN) ====
 window.tourHubNew = async () => {
-    if (!currentUser || currentUser.email !== 'alfin.armadani@sugity.co.id') {
+    if (!currentUser || !window.isHostEmail(currentUser.email)) {
         window.sysAlert(
             "Fitur Host tidak tersedia untuk akun Anda.",
             "Akses Terbatas",
@@ -1067,7 +1072,7 @@ function applyTourData(data, isJoining) {
     window.scores = data.scores || {};
     cfgFormat = window.config.format || "strokeplay";
     
-    if (currentUser && currentUser.email === 'alfin.armadani@sugity.co.id' && data.creator_id === currentUser.id) {
+    if (currentUser && window.isHostEmail(currentUser.email) && data.creator_id === currentUser.id) {
         window.isGuest = false;
         window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'host');
     } else {
