@@ -1634,21 +1634,32 @@ window.updateLinkedHistory = () => {
 };
 
 window.saveLiveUpdate = async (updates) => {
-     if(!window.currentLiveTourId) return;
-     const liveDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shared_tournaments', window.currentLiveTourId);
-     try {
-         await setDoc(liveDocRef, updates, { merge: true });
-     } catch (e) {
-         console.error("Live Update Error:", e);
-     }
+    if (!window.currentLiveTourId) return;
+    try {
+        const { error } = await supabase
+            .from('shared_tournaments')
+            .update(updates)
+            .eq('code', window.currentLiveTourId);
+        if (error) {
+            console.error("Supabase Live Update Error:", error);
+        }
+    } catch (e) {
+        console.error("Live Update Exception:", e);
+    }
 };
 
 window.nextToOverview = async () => {
-    if(!window.isGuest) {
-        window.config.name=document.getElementById("cfgName").value||window.config.name;
-        window.config.venue=document.getElementById("cfgVenue").value||window.config.venue;
-        window.config.format=cfgFormat;
-        await window.saveLiveUpdate({ config: window.config, players: window.players });
+    try {
+        if (!window.isGuest) {
+            const cfgNameEl = document.getElementById("cfgName");
+            const cfgVenueEl = document.getElementById("cfgVenue");
+            if (cfgNameEl) window.config.name = cfgNameEl.value || window.config.name;
+            if (cfgVenueEl) window.config.venue = cfgVenueEl.value || window.config.venue;
+            window.config.format = cfgFormat;
+            await window.saveLiveUpdate({ config: window.config, players: window.players });
+        }
+    } catch (err) {
+        console.error("nextToOverview save error:", err);
     }
     window.switchTourTab('score');
 };
