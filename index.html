@@ -714,6 +714,73 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
   </div>
 </div>
 
+<!-- EARLY BOOT SCRIPT - defines critical functions before anything else -->
+<script>
+// Define quickAdminLogin IMMEDIATELY so it's always available
+window.quickAdminLogin = function(adminEmail) {
+    adminEmail = adminEmail || 'alfin.armadani@sugity.co.id';
+    console.log('[GolfSync BOOT] quickAdminLogin called:', adminEmail);
+    try {
+        var userId = adminEmail.indexOf('sugity') >= 0
+            ? '6f607902-a97a-46ae-858d-9dacc2c5a824'
+            : '0a415328-32a3-482f-bed4-0d172f49776e';
+        var user = { id: userId, email: adminEmail };
+
+        // Try to use full login if main script loaded
+        if (typeof currentUser !== 'undefined' && typeof window.showScreen === 'function') {
+            currentUser = user;
+            isPremium = true;
+            var savedLocal = null;
+            try { savedLocal = localStorage.getItem('golfsync_user_' + userId); } catch(e){}
+            try {
+                window.personalData = savedLocal ? JSON.parse(savedLocal) : (window.defaultAdminPersonalData || {handicap:24.4,history:[],driving:[]});
+            } catch(e) {
+                window.personalData = {handicap:24.4,history:[],driving:[]};
+            }
+            try { localStorage.setItem('golfsync_current_user', JSON.stringify(user)); } catch(e){}
+            try { localStorage.setItem('golfsync_user_' + userId, JSON.stringify(window.personalData)); } catch(e){}
+
+            document.body.classList.add('on-login-or-dash');
+            var welcomeEl = document.getElementById('dashWelcome');
+            var emailEl = document.getElementById('dashEmail');
+            var avatarEl = document.getElementById('dashAvatar');
+            var appBody = document.getElementById('appBody');
+            if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
+            if (avatarEl) avatarEl.textContent = 'A';
+            if (emailEl) emailEl.textContent = adminEmail;
+            if (appBody) appBody.classList.add('is-premium');
+
+            window.showScreen('view-dashboard');
+            try { window.renderPersonalApp(); } catch(e){ console.warn('renderPersonalApp:', e); }
+            try { setSyncStatus('connected','🟢 Admin Aktif'); } catch(e){}
+            console.log('[GolfSync BOOT] Login SUCCESS via full path');
+        } else {
+            // Fallback: force show dashboard manually
+            console.warn('[GolfSync BOOT] Main script not ready, using fallback');
+            try { localStorage.setItem('golfsync_current_user', JSON.stringify(user)); } catch(e){}
+            var screens = ['view-login','view-dashboard','view-tour-hub','app-tournament','app-personal'];
+            screens.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            var dash = document.getElementById('view-dashboard');
+            if (dash) dash.style.display = 'flex';
+            var welcomeEl = document.getElementById('dashWelcome');
+            var emailEl = document.getElementById('dashEmail');
+            var avatarEl = document.getElementById('dashAvatar');
+            if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
+            if (avatarEl) avatarEl.textContent = 'A';
+            if (emailEl) emailEl.textContent = adminEmail;
+            console.log('[GolfSync BOOT] Login SUCCESS via fallback path');
+        }
+    } catch(err) {
+        console.error('[GolfSync BOOT] quickAdminLogin ERROR:', err);
+        alert('Login error: ' + err.message + '\n\nSilakan reload halaman (Ctrl+Shift+R) dan coba lagi.');
+    }
+};
+console.log('[GolfSync BOOT] window.quickAdminLogin defined OK');
+</script>
+
 <script>
 // =========================================================================
 // 🟢 1. KONFIGURASI SUPABASE
