@@ -1289,36 +1289,62 @@ const defaultAdminPersonalData = {
 };
 
 window.quickAdminLogin = (adminEmail = 'alfin.armadani@sugity.co.id') => {
-    window.toggleLoginLoading(false);
-    currentUser = {
-        id: adminEmail.includes('sugity') ? '6f607902-a97a-46ae-858d-9dacc2c5a824' : '0a415328-32a3-482f-bed4-0d172f49776e',
-        email: adminEmail
-    };
-    isPremium = true;
-    const savedLocal = localStorage.getItem('golfsync_user_' + currentUser.id);
-    if (savedLocal) {
-        try { window.personalData = JSON.parse(savedLocal); } catch(e) { window.personalData = defaultAdminPersonalData; }
-    } else {
-        window.personalData = defaultAdminPersonalData;
+    console.log('[GolfSync] quickAdminLogin called with:', adminEmail);
+    try {
+        // 1. Hide loading, show we're working
+        const btnGroup = document.getElementById('loginBtnGroup');
+        const loader = document.getElementById('loginLoading');
+        if(btnGroup) btnGroup.style.display = 'none';
+        if(loader) { loader.style.display = 'block'; loader.textContent = '⏳ Masuk...'; }
+
+        // 2. Set current user
+        currentUser = {
+            id: adminEmail.includes('sugity') ? '6f607902-a97a-46ae-858d-9dacc2c5a824' : '0a415328-32a3-482f-bed4-0d172f49776e',
+            email: adminEmail
+        };
+        isPremium = true;
+        console.log('[GolfSync] currentUser set:', currentUser.id);
+
+        // 3. Load personal data
+        try {
+            const savedLocal = localStorage.getItem('golfsync_user_' + currentUser.id);
+            window.personalData = savedLocal ? JSON.parse(savedLocal) : defaultAdminPersonalData;
+        } catch(e) {
+            window.personalData = defaultAdminPersonalData;
+        }
+
+        // 4. Persist session
+        localStorage.setItem('golfsync_current_user', JSON.stringify(currentUser));
+        localStorage.setItem('golfsync_user_' + currentUser.id, JSON.stringify(window.personalData));
+        console.log('[GolfSync] Session saved to localStorage');
+
+        // 5. Update dashboard DOM
+        document.body.classList.add('on-login-or-dash');
+        const welcomeEl = document.getElementById("dashWelcome");
+        const emailEl = document.getElementById("dashEmail");
+        const avatarEl = document.getElementById("dashAvatar");
+        const appBody = document.getElementById("appBody");
+        if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
+        if (avatarEl) avatarEl.textContent = 'A';
+        if (emailEl) emailEl.textContent = adminEmail;
+        if (appBody) appBody.classList.add("is-premium");
+        console.log('[GolfSync] DOM updated');
+
+        // 6. Switch screen
+        window.showScreen('view-dashboard');
+        console.log('[GolfSync] Screen switched to dashboard');
+
+        // 7. Render personal app
+        try { window.renderPersonalApp(); } catch(e) { console.warn('[GolfSync] renderPersonalApp error:', e); }
+
+        // 8. Sync status
+        try { setSyncStatus("connected", "🟢 Admin Aktif"); } catch(e) {}
+
+        console.log('[GolfSync] quickAdminLogin SUCCESS');
+    } catch(err) {
+        console.error('[GolfSync] quickAdminLogin FAILED:', err);
+        alert('Login gagal: ' + err.message);
     }
-    
-    localStorage.setItem('golfsync_current_user', JSON.stringify(currentUser));
-    localStorage.setItem('golfsync_user_' + currentUser.id, JSON.stringify(window.personalData));
-    
-    document.body.classList.add('on-login-or-dash');
-    const welcomeEl = document.getElementById("dashWelcome");
-    const emailEl = document.getElementById("dashEmail");
-    const avatarEl = document.getElementById("dashAvatar");
-    if (welcomeEl) {
-        welcomeEl.textContent = `Halo, Alfin!`;
-        if(avatarEl) avatarEl.textContent = 'A';
-    }
-    if (emailEl) emailEl.textContent = adminEmail;
-    document.getElementById("appBody").classList.add("is-premium");
-    
-    window.showScreen('view-dashboard');
-    window.renderPersonalApp();
-    setSyncStatus("connected", "🟢 Admin Aktif");
 };
 
 window.triggerEmailLogin = async () => {
