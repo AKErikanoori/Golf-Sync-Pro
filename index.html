@@ -28,7 +28,8 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 .lang-select option { color: var(--navy); }
 
 /* === SCREENS === */
-#view-login, #view-dashboard, #view-tour-hub, #app-tournament, #app-personal { display: none; }
+#view-dashboard, #view-tour-hub, #app-tournament, #app-personal { display: none; }
+#view-login { display: flex; }
 
 /* === LOGIN SCREEN === */
 .login-screen {
@@ -1289,44 +1290,48 @@ window.triggerLogout = async () => {
     }, window.t('logout'), "🚪", "modal-btn-danger");
 };
 
-supabase.auth.onAuthStateChange(async (event, session) => {
-    const user = session?.user || null;
-    if (user) {
-        currentUser = user;
-        document.body.classList.add('on-login-or-dash');
-        window.showScreen('view-dashboard');
-        
-        const welcomeEl = document.getElementById("dashWelcome");
-        const emailEl = document.getElementById("dashEmail");
-        const avatarEl = document.getElementById("dashAvatar");
-        
-        if (welcomeEl) {
-            let name = "Golfer";
-            if (user.user_metadata?.full_name) {
-                name = user.user_metadata.full_name.split(' ')[0];
-            } else if (user.email) {
-                name = user.email.split('@')[0];
+if (supabase && supabase.auth) {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        const user = session?.user || null;
+        if (user) {
+            currentUser = user;
+            document.body.classList.add('on-login-or-dash');
+            window.showScreen('view-dashboard');
+            
+            const welcomeEl = document.getElementById("dashWelcome");
+            const emailEl = document.getElementById("dashEmail");
+            const avatarEl = document.getElementById("dashAvatar");
+            
+            if (welcomeEl) {
+                let name = "Golfer";
+                if (user.user_metadata?.full_name) {
+                    name = user.user_metadata.full_name.split(' ')[0];
+                } else if (user.email) {
+                    name = user.email.split('@')[0];
+                }
+                welcomeEl.textContent = `Halo, ${name}!`;
+                if(avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
             }
-            welcomeEl.textContent = `Halo, ${name}!`;
-            if(avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
-        }
-        if (emailEl) emailEl.textContent = user.email || 'Mode Anonim';
+            if (emailEl) emailEl.textContent = user.email || 'Mode Anonim';
 
-        loadUserData(user.id);
-    } else {
-        currentUser = null;
-        document.body.classList.add('on-login-or-dash');
-        
-        window.toggleLoginLoading(false);
-        const emailInput = document.getElementById('authEmail');
-        const passInput = document.getElementById('authPassword');
-        if(emailInput) emailInput.value = '';
-        if(passInput) passInput.value = '';
-        
-        window.showScreen('view-login');
-        if(liveUnsubChannel) { supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null; }
-    }
-});
+            loadUserData(user.id);
+        } else {
+            currentUser = null;
+            document.body.classList.add('on-login-or-dash');
+            
+            window.toggleLoginLoading(false);
+            const emailInput = document.getElementById('authEmail');
+            const passInput = document.getElementById('authPassword');
+            if(emailInput) emailInput.value = '';
+            if(passInput) passInput.value = '';
+            
+            window.showScreen('view-login');
+            if(liveUnsubChannel) { supabase.removeChannel(liveUnsubChannel); liveUnsubChannel = null; }
+        }
+    });
+} else {
+    window.showScreen('view-login');
+}
 
 window.showScreen = (screenId) => {
   ['view-login', 'view-dashboard', 'view-tour-hub', 'app-tournament', 'app-personal'].forEach(id => {
