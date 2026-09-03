@@ -718,12 +718,13 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 // =========================================================================
 // 🟢 1. KONFIGURASI SUPABASE
 // =========================================================================
-const SUPABASE_URL = "https://neycfsdyljbggwutoarg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5leWNmc2R5bGpiZ2d3dXRvYXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NzM0MzgsImV4cCI6MjEwMTU0OTQzOH0.rCUR_A1d8n-VnsYWw9cYcyuNz3mUgns8jRWbu4GbMEg";
-var supabaseClient = (window.supabase && window.supabase.createClient)
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+var SUPABASE_URL = "https://neycfsdyljbggwutoarg.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5leWNmc2R5bGpiZ2d3dXRvYXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NzM0MzgsImV4cCI6MjEwMTU0OTQzOH0.rCUR_A1d8n-VnsYWw9cYcyuNz3mUgns8jRWbu4GbMEg";
+var _supaLib = window.supabase; // save CDN library reference
+var supabaseClient = (_supaLib && typeof _supaLib.createClient === 'function')
+  ? _supaLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
-supabase = supabaseClient;
+var supabase = supabaseClient;
 window.supabase = supabaseClient;
 
 // ====== i18n / MULTI-LANGUAGE SYSTEM ======
