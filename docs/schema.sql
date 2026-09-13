@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- =================================================================================
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email           VARCHAR(255) NOT NULL UNIQUE,
+    email           VARCHAR(255) NULL,
     full_name       VARCHAR(255) NULL,
     avatar_url      TEXT NULL,
     handicap_index  NUMERIC(4, 1) NOT NULL DEFAULT 0.0,
@@ -23,6 +23,25 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Pastikan kolom baru terpasang jika tabel sudah pernah dibuat sebelumnya
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS full_name VARCHAR(255);
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS handicap_index NUMERIC(4, 1) DEFAULT 0.0;
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+
+-- Sinkronisasi email dan handicap untuk user eksisting
+UPDATE public.user_profiles 
+SET email = 'alfin.armadani@sugity.co.id', full_name = 'Alfin Armadani', handicap_index = 23.3, is_premium = TRUE 
+WHERE id = '6f607902-a97a-46ae-858d-9dacc2c5a824' AND email IS NULL;
+
+UPDATE public.user_profiles 
+SET email = '4lfin.armadani@gmail.com', full_name = 'Alfin Armadani', handicap_index = 24.4, is_premium = TRUE 
+WHERE id = '0a415328-32a3-482f-bed4-0d172f49776e' AND email IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_is_active ON public.user_profiles(is_active);
@@ -317,3 +336,10 @@ INSERT INTO public.site_configurations (config_key, config_value, data_type, des
 ('AUDIT_LOG_RETENTION_DAYS', '90', 'number', 'Masa simpan log audit sebelum diarsipkan', FALSE),
 ('ALLOW_REGISTRATION', 'true', 'boolean', 'Izinkan pendaftaran akun baru secara mandiri', TRUE)
 ON CONFLICT (config_key) DO NOTHING;
+
+-- 9.5. Penugasan Role Super-Admin untuk Admin Eksisting
+INSERT INTO public.user_roles (user_id, role_id) VALUES
+('6f607902-a97a-46ae-858d-9dacc2c5a824', 'super-admin'),
+('0a415328-32a3-482f-bed4-0d172f49776e', 'super-admin')
+ON CONFLICT (user_id, role_id) DO NOTHING;
+
