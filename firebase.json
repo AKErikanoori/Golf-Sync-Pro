@@ -4,7 +4,15 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "package*.json",
+      "skills-lock.json",
+      "index.txt",
+      "capacitor.config.json",
+      "android/**",
+      "docs/**",
+      "*.md",
+      "*.sql"
     ]
   }
 }

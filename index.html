@@ -267,10 +267,26 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
 .empty-icon{font-size:40px;margin-bottom:8px}
 .pb{padding-bottom:32px}
 .wrap{padding:12px 16px}
-.sync-bar{position:fixed;top:0;left:0;width:100%;padding:4px;font-size:10px;font-weight:700;text-align:center;z-index:1000;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff}
-.sync-bar.connecting{background:#e65100} .sync-bar.connected{background:#1b5e20} .sync-bar.error{background:#c62828}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1s infinite}
-@keyframes pulse{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}
+/* === ENTERPRISE TIER A ADMIN CONSOLE === */
+.admin-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.badge-super-admin { background: #fdf6e3; color: #b8860b; border: 1px solid #e0c868; }
+.badge-host { background: #e8edf5; color: var(--navy); border: 1px solid var(--border); }
+.badge-player { background: #f0f0f0; color: #666; }
+.badge-active { background: #e8f5e9; color: #1b5e20; }
+.badge-inactive { background: #ffebee; color: #c62828; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+.admin-table th { background: #f8fafc; padding: 10px 8px; text-align: left; font-weight: 700; color: var(--navy); border-bottom: 2px solid var(--border); }
+.admin-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.admin-table tr:hover { background: #fcfcfc; }
+.admin-nav-tabs { display: flex; background: #fff; border-bottom: 2px solid var(--border); overflow-x: auto; gap: 4px; padding: 0 10px; }
+.admin-tab-btn { padding: 12px 14px; font-size: 12px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+.admin-tab-btn.active { color: var(--navy); border-bottom-color: var(--gold); }
+.admin-input-sm { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; outline: none; width: 100%; }
+.admin-btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
+.admin-btn-primary { background: var(--navy); color: #fff; }
+.admin-btn-danger { background: var(--red2); color: #fff; }
+.admin-btn-gold { background: var(--gold); color: #000; }
+.admin-btn-sm:active { transform: scale(0.96); }
 </style>
 </head>
 <body id="appBody">
@@ -293,10 +309,6 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
   <div class="login-subtitle" data-i18n="app_desc">Aplikasi Pencatat Skor Golf Profesional</div>
   
   <div id="loginBtnGroup" class="login-btn-group">
-    <button class="auth-btn" onclick="window.quickAdminLogin('alfin.armadani@sugity.co.id')" style="background: linear-gradient(135deg, #c9a227, #f3c749); color: #0a1128; font-weight: 800; border: none; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(201,162,39,0.35); display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <span style="font-size: 16px;">⚡</span> <span>Masuk Langsung Admin (Alfin Armadani)</span>
-    </button>
-    
     <button class="auth-btn btn-google" onclick="window.triggerLogin()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l3.68-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       <span data-i18n="login_google">Lanjutkan dengan Google</span>
@@ -357,8 +369,123 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
             <div class="dc-desc" data-i18n="personal_desc">Catat riwayat skor, progres latihan driving, dan kalkulasi Handicap Index.</div>
         </div>
       </div>
+      <!-- 👑 KARTU ADMIN TIER A (Super-Admin Only) -->
+      <div id="superAdminCard" class="dcard" style="display: none; border-left: 4px solid var(--gold); background: #fdfbf7;" onclick="window.openSuperAdmin()">
+        <div class="dc-icon-wrap" style="background: #fdf6e3; color: var(--gold);">👑</div>
+        <div class="dc-content">
+            <div class="dc-title">Console Enterprise (Tier A)</div>
+            <div class="dc-desc">User Management, Global Audit Logs, Site Config, & Dynamic RBAC.</div>
+        </div>
+      </div>
     </div>
     
+  </div>
+</div>
+
+<!-- === 3. ENTERPRISE TIER A ADMIN CONSOLE SCREEN === -->
+<div id="view-admin" style="display: none;">
+  <div class="hdr">
+    <button class="hdr-back" onclick="window.goToDashboard()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="hdr-content">
+      <div class="hdr-event">SOP BAGIAN I POIN 8a</div>
+      <div class="hdr-title">ENTERPRISE <span>CONSOLE</span></div>
+    </div>
+  </div>
+
+  <!-- Admin Navigation Tabs -->
+  <div class="admin-nav-tabs">
+    <button class="admin-tab-btn active" id="tabBtnUsers" onclick="window.switchAdminTab('users')">👥 User Management</button>
+    <button class="admin-tab-btn" id="tabBtnAudit" onclick="window.switchAdminTab('audit')">📜 Global Audit Logs</button>
+    <button class="admin-tab-btn" id="tabBtnConfig" onclick="window.switchAdminTab('config')">⚙️ Site Configuration</button>
+    <button class="admin-tab-btn" id="tabBtnRbac" onclick="window.switchAdminTab('rbac')">🛡️ Dynamic RBAC</button>
+  </div>
+
+  <div class="wrap" style="max-width: 900px; margin: 0 auto; padding-bottom: 40px;">
+    
+    <!-- PANEL 1: USER MANAGEMENT -->
+    <div id="adminPanelUsers" style="display: block;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px;">
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--navy);">Pengelolaan Pengguna Sistem</h3>
+        <button class="admin-btn-sm admin-btn-primary" onclick="window.adminShowCreateUserModal()">+ Tambah User</button>
+      </div>
+      <input type="text" id="adminUserSearch" class="admin-input-sm" placeholder="🔍 Cari email atau nama..." onkeyup="window.adminFilterUsers(this.value)" style="margin-bottom: 12px;">
+      
+      <div style="overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Pengguna</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Handicap</th>
+              <th style="text-align: right;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersTableBody">
+            <tr><td colspan="5" style="text-align: center; color: var(--muted); padding: 20px;">Memuat data pengguna...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL 2: GLOBAL AUDIT LOGS -->
+    <div id="adminPanelAudit" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px;">
+        <div>
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--navy);">Global Audit Logs</h3>
+          <div style="font-size: 11px; color: var(--muted);">Pencatatan real-time seluruh aktivitas & mutasi request (SOP Poin 11)</div>
+        </div>
+        <button class="admin-btn-sm admin-btn-gold" onclick="window.adminLoadAuditLogs()">🔄 Refresh Log</button>
+      </div>
+
+      <div style="overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Method</th>
+              <th>Action & Path</th>
+              <th>User / Role</th>
+              <th>Status</th>
+              <th>Durasi</th>
+            </tr>
+          </thead>
+          <tbody id="adminAuditTableBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 20px;">Memuat riwayat log...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL 3: SITE CONFIGURATION -->
+    <div id="adminPanelConfig" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px;">
+        <div>
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--navy);">Site Configuration</h3>
+          <div style="font-size: 11px; color: var(--muted);">Parameter aplikasi yang dapat diatur tanpa redeploy (SOP Poin 8a)</div>
+        </div>
+        <button class="admin-btn-sm admin-btn-primary" onclick="window.adminSaveSiteConfigs()">💾 Simpan Konfigurasi</button>
+      </div>
+
+      <div id="adminConfigList" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="text-align: center; color: var(--muted); padding: 20px;">Memuat konfigurasi...</div>
+      </div>
+    </div>
+
+    <!-- PANEL 4: DYNAMIC RBAC -->
+    <div id="adminPanelRbac" style="display: none;">
+      <div style="margin: 15px 0 10px;">
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--navy);">Role-Based Access Control (RBAC)</h3>
+        <div style="font-size: 11px; color: var(--muted);">Matriks pembatasan hak akses berbasis peran (SOP Poin 8a & 9)</div>
+      </div>
+
+      <div id="adminRbacMatrix" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="text-align: center; color: var(--muted); padding: 20px;">Memuat data RBAC...</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -714,71 +841,9 @@ html,body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Seg
   </div>
 </div>
 
-<!-- EARLY BOOT SCRIPT - defines critical functions before anything else -->
+<!-- EARLY BOOT SCRIPT - Tier A Enterprise Init -->
 <script>
-// Define quickAdminLogin IMMEDIATELY so it's always available
-window.quickAdminLogin = function(adminEmail) {
-    adminEmail = adminEmail || 'alfin.armadani@sugity.co.id';
-    console.log('[GolfSync BOOT] quickAdminLogin called:', adminEmail);
-    try {
-        var userId = adminEmail.indexOf('sugity') >= 0
-            ? '6f607902-a97a-46ae-858d-9dacc2c5a824'
-            : '0a415328-32a3-482f-bed4-0d172f49776e';
-        var user = { id: userId, email: adminEmail };
-
-        // Try to use full login if main script loaded
-        if (typeof currentUser !== 'undefined' && typeof window.showScreen === 'function') {
-            currentUser = user;
-            isPremium = true;
-            var savedLocal = null;
-            try { savedLocal = localStorage.getItem('golfsync_user_' + userId); } catch(e){}
-            try {
-                window.personalData = savedLocal ? JSON.parse(savedLocal) : (window.defaultAdminPersonalData || {handicap:24.4,history:[],driving:[]});
-            } catch(e) {
-                window.personalData = {handicap:24.4,history:[],driving:[]};
-            }
-            try { localStorage.setItem('golfsync_current_user', JSON.stringify(user)); } catch(e){}
-            try { localStorage.setItem('golfsync_user_' + userId, JSON.stringify(window.personalData)); } catch(e){}
-
-            document.body.classList.add('on-login-or-dash');
-            var welcomeEl = document.getElementById('dashWelcome');
-            var emailEl = document.getElementById('dashEmail');
-            var avatarEl = document.getElementById('dashAvatar');
-            var appBody = document.getElementById('appBody');
-            if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
-            if (avatarEl) avatarEl.textContent = 'A';
-            if (emailEl) emailEl.textContent = adminEmail;
-            if (appBody) appBody.classList.add('is-premium');
-
-            window.showScreen('view-dashboard');
-            try { window.renderPersonalApp(); } catch(e){ console.warn('renderPersonalApp:', e); }
-            try { setSyncStatus('connected','🟢 Admin Aktif'); } catch(e){}
-            console.log('[GolfSync BOOT] Login SUCCESS via full path');
-        } else {
-            // Fallback: force show dashboard manually
-            console.warn('[GolfSync BOOT] Main script not ready, using fallback');
-            try { localStorage.setItem('golfsync_current_user', JSON.stringify(user)); } catch(e){}
-            var screens = ['view-login','view-dashboard','view-tour-hub','app-tournament','app-personal'];
-            screens.forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-            var dash = document.getElementById('view-dashboard');
-            if (dash) dash.style.display = 'flex';
-            var welcomeEl = document.getElementById('dashWelcome');
-            var emailEl = document.getElementById('dashEmail');
-            var avatarEl = document.getElementById('dashAvatar');
-            if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
-            if (avatarEl) avatarEl.textContent = 'A';
-            if (emailEl) emailEl.textContent = adminEmail;
-            console.log('[GolfSync BOOT] Login SUCCESS via fallback path');
-        }
-    } catch(err) {
-        console.error('[GolfSync BOOT] quickAdminLogin ERROR:', err);
-        alert('Login error: ' + err.message + '\n\nSilakan reload halaman (Ctrl+Shift+R) dan coba lagi.');
-    }
-};
-console.log('[GolfSync BOOT] window.quickAdminLogin defined OK');
+console.log('[GolfSync BOOT] Starting GolfSync PRO Tier A...');
 </script>
 
 <script>
@@ -1024,16 +1089,26 @@ window.getBlankConfig = (dateStr) => {
     };
 };
 
+// ====== DYNAMIC RBAC ROLE HANDLING (SOP Poin 8a & 9) ======
+window.currentUserRole = 'player';
+window.currentUserPermissions = [];
+
+window.isHost = () => {
+    if (!currentUser) return false;
+    if (window.currentUserRole === 'super-admin' || window.currentUserRole === 'host') return true;
+    const defaultHosts = ['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'];
+    return defaultHosts.includes(currentUser.email?.toLowerCase());
+};
+
 window.isHostEmail = (email) => {
-    const HOST_EMAILS = ['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'];
-    return email && HOST_EMAILS.includes(email.toLowerCase());
+    return window.isHost();
 };
 
 // ==== LOGIKA HUB (NEW & JOIN) ====
 window.tourHubNew = async () => {
-    if (!currentUser || !window.isHostEmail(currentUser.email)) {
+    if (!currentUser || !window.isHost()) {
         window.sysAlert(
-            "Fitur Host tidak tersedia untuk akun Anda.",
+            "Fitur Host (Pembuat Room) hanya tersedia untuk akun Host / Admin.",
             "Akses Terbatas",
             "🔒"
         );
@@ -1141,7 +1216,11 @@ function applyTourData(data, isJoining) {
     window.scores = data.scores || {};
     cfgFormat = window.config.format || "strokeplay";
     
-    if (currentUser && window.isHostEmail(currentUser.email) && data.creator_id === currentUser.id) {
+    const isCreatorOrSuperAdmin = currentUser && (
+        (window.isHost() && data.creator_id === currentUser.id) || 
+        window.currentUserRole === 'super-admin'
+    );
+    if (isCreatorOrSuperAdmin) {
         window.isGuest = false;
         window.addRecentTournament(window.currentLiveTourId, window.config.name, window.config.date, 'host');
     } else {
@@ -1356,98 +1435,64 @@ const defaultAdminPersonalData = {
     ]
 };
 
-window.quickAdminLogin = (adminEmail = 'alfin.armadani@sugity.co.id') => {
-    console.log('[GolfSync] quickAdminLogin called with:', adminEmail);
+// ====== GLOBAL AUDIT LOGGING HELPER (SOP Poin 11) ======
+window.recordAuditLog = async (method, statusCode, endpointPath, userId, userRole, actionName, payloadSummary, durationMs = 0) => {
     try {
-        // 1. Hide loading, show we're working
-        const btnGroup = document.getElementById('loginBtnGroup');
-        const loader = document.getElementById('loginLoading');
-        if(btnGroup) btnGroup.style.display = 'none';
-        if(loader) { loader.style.display = 'block'; loader.textContent = '⏳ Masuk...'; }
-
-        // 2. Set current user
-        currentUser = {
-            id: adminEmail.includes('sugity') ? '6f607902-a97a-46ae-858d-9dacc2c5a824' : '0a415328-32a3-482f-bed4-0d172f49776e',
-            email: adminEmail
-        };
-        isPremium = true;
-        console.log('[GolfSync] currentUser set:', currentUser.id);
-
-        // 3. Load personal data
-        try {
-            const savedLocal = localStorage.getItem('golfsync_user_' + currentUser.id);
-            window.personalData = savedLocal ? JSON.parse(savedLocal) : defaultAdminPersonalData;
-        } catch(e) {
-            window.personalData = defaultAdminPersonalData;
-        }
-
-        // 4. Persist session
-        localStorage.setItem('golfsync_current_user', JSON.stringify(currentUser));
-        localStorage.setItem('golfsync_user_' + currentUser.id, JSON.stringify(window.personalData));
-        console.log('[GolfSync] Session saved to localStorage');
-
-        // 5. Update dashboard DOM
-        document.body.classList.add('on-login-or-dash');
-        const welcomeEl = document.getElementById("dashWelcome");
-        const emailEl = document.getElementById("dashEmail");
-        const avatarEl = document.getElementById("dashAvatar");
-        const appBody = document.getElementById("appBody");
-        if (welcomeEl) welcomeEl.textContent = 'Halo, Alfin!';
-        if (avatarEl) avatarEl.textContent = 'A';
-        if (emailEl) emailEl.textContent = adminEmail;
-        if (appBody) appBody.classList.add("is-premium");
-        console.log('[GolfSync] DOM updated');
-
-        // 6. Switch screen
-        window.showScreen('view-dashboard');
-        console.log('[GolfSync] Screen switched to dashboard');
-
-        // 7. Render personal app
-        try { window.renderPersonalApp(); } catch(e) { console.warn('[GolfSync] renderPersonalApp error:', e); }
-
-        // 8. Sync status
-        try { setSyncStatus("connected", "🟢 Admin Aktif"); } catch(e) {}
-
-        console.log('[GolfSync] quickAdminLogin SUCCESS');
-    } catch(err) {
-        console.error('[GolfSync] quickAdminLogin FAILED:', err);
-        alert('Login gagal: ' + err.message);
+        if (!supabase) return;
+        const uid = userId || (currentUser ? currentUser.id : null);
+        const role = userRole || window.currentUserRole || 'guest';
+        await supabase.from('global_audit_logs').insert({
+            method: method || 'MUTATION',
+            status_code: statusCode || 200,
+            endpoint_path: endpointPath || window.location.pathname,
+            user_id: uid,
+            user_role: role,
+            action_name: actionName || 'ACTION',
+            payload_summary: typeof payloadSummary === 'object' ? JSON.stringify(payloadSummary) : String(payloadSummary || ''),
+            duration_ms: durationMs || 0
+        });
+    } catch(e) {
+        console.warn('[Audit Log Warning]', e);
     }
 };
 
 window.triggerEmailLogin = async () => {
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value.trim();
-    if(!email || !password) { window.sysAlert("Email dan Kata Sandi wajib diisi!", "Info", "⚠️"); return; }
-    
-    const cleanPass = password.toLowerCase().replace('$', '');
-    const isSugityPass = cleanPass === 'ugity123' || password === '$ugity123';
-    const isAdminEmail = ['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'].includes(email.toLowerCase());
-    
-    if (isAdminEmail || isSugityPass) {
-        window.quickAdminLogin(email || 'alfin.armadani@sugity.co.id');
-        return;
+    if(!email || !password) { 
+        window.sysAlert("Email dan Kata Sandi wajib diisi!", "Info", "⚠️"); 
+        return; 
     }
     
     window.toggleLoginLoading(true);
-    let loggedIn = false;
     
     if (supabase && supabase.auth) {
+        const startTime = Date.now();
         try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
-            const authPromise = supabase.auth.signInWithPassword({ email, password });
-            const { data, error } = await Promise.race([authPromise, timeoutPromise]);
-            if (!error && data?.user) {
-                loggedIn = true;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const duration = Date.now() - startTime;
+            window.toggleLoginLoading(false);
+            
+            if (error) {
+                console.warn("Supabase auth error:", error);
+                window.recordAuditLog('AUTH', 401, '/auth/login', null, null, 'LOGIN_FAILED', 'Gagal login: ' + email + ' (' + error.message + ')', duration);
+                window.sysAlert(error.message || "Email atau Kata Sandi salah.", "Login Gagal", "❌");
+                return;
+            }
+            if (data?.user) {
+                window.recordAuditLog('AUTH', 200, '/auth/login', data.user.id, null, 'LOGIN_SUCCESS', 'User login berhasil: ' + email, duration);
+                // Session will automatically trigger onAuthStateChange
+                return;
             }
         } catch(err) {
-            console.warn("Supabase auth error/timeout:", err);
+            window.toggleLoginLoading(false);
+            console.error("Supabase auth exception:", err);
+            window.sysAlert("Gagal terhubung ke server autentikasi: " + err.message, "Koneksi Error", "❌");
+            return;
         }
-    }
-    
-    window.toggleLoginLoading(false);
-    if (!loggedIn) {
-        window.sysAlert("Email atau Kata Sandi salah.", "Login Gagal", "❌");
+    } else {
+        window.toggleLoginLoading(false);
+        window.sysAlert("Layanan database belum siap. Mohon periksa koneksi internet Anda.", "Error", "⚠️");
     }
 };
 
@@ -1557,10 +1602,14 @@ if (supabase && supabase.auth) {
 }
 
 window.showScreen = (screenId) => {
-  ['view-login', 'view-dashboard', 'view-tour-hub', 'app-tournament', 'app-personal'].forEach(id => {
-    document.getElementById(id).style.display = (id === screenId) ? 'block' : 'none';
+  ['view-login', 'view-dashboard', 'view-tour-hub', 'app-tournament', 'app-personal', 'view-admin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (id === screenId) ? 'block' : 'none';
   });
-  if (screenId === 'view-login' || screenId === 'view-dashboard') document.getElementById(screenId).style.display = 'flex';
+  if (screenId === 'view-login' || screenId === 'view-dashboard') {
+    const el = document.getElementById(screenId);
+    if (el) el.style.display = 'flex';
+  }
 };
 
 window.goToDashboard = () => { 
@@ -1569,6 +1618,385 @@ window.goToDashboard = () => {
         window.currentLiveTourId = null;
     }
     window.showScreen('view-dashboard'); 
+};
+
+// =========================================================================
+// 👑 ENTERPRISE TIER A FOUNDATION MODULES (SOP BAGIAN I POIN 8a, 9, 10, 11)
+// =========================================================================
+window.cachedUsers = [];
+window.cachedSiteConfigs = [];
+
+window.openSuperAdmin = () => {
+    if (window.currentUserRole !== 'super-admin') {
+        window.sysAlert("Akses Ditolak: Hanya Super-Admin yang berhak mengakses Enterprise Console.", "Akses Terbatas", "🔒");
+        return;
+    }
+    window.showScreen('view-admin');
+    window.switchAdminTab('users');
+    window.recordAuditLog('GET', 200, '/admin/console', currentUser?.id, window.currentUserRole, 'OPEN_ADMIN_CONSOLE', 'Membuka Enterprise Console');
+};
+
+window.switchAdminTab = (tabName) => {
+    const tabs = ['users', 'audit', 'config', 'rbac'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const panel = document.getElementById('adminPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) btn.classList.toggle('active', t === tabName);
+        if (panel) panel.style.display = (t === tabName) ? 'block' : 'none';
+    });
+
+    if (tabName === 'users') window.adminLoadUsers();
+    else if (tabName === 'audit') window.adminLoadAuditLogs();
+    else if (tabName === 'config') window.adminLoadSiteConfigs();
+    else if (tabName === 'rbac') window.adminLoadRbac();
+};
+
+// --- MODUL 1: USER MANAGEMENT (CRUD LENGKAP - POIN 10 SOP) ---
+window.adminLoadUsers = async () => {
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:20px;">Memuat data pengguna...</td></tr>';
+    
+    try {
+        if (!supabase) throw new Error("Database belum terhubung");
+        const { data: profiles, error: pErr } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (pErr) throw pErr;
+
+        // Ambil roles
+        const { data: userRoles } = await supabase.from('user_roles').select('*');
+        const roleMap = {};
+        (userRoles || []).forEach(r => { roleMap[r.user_id] = r.role_id; });
+
+        window.cachedUsers = (profiles || []).map(p => ({
+            ...p,
+            role_id: roleMap[p.id] || (['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'].includes(p.email?.toLowerCase()) ? 'super-admin' : 'player')
+        }));
+
+        window.adminRenderUsersTable(window.cachedUsers);
+    } catch(err) {
+        console.error("adminLoadUsers error:", err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--red2); padding:20px;">Gagal memuat pengguna: ${err.message}</td></tr>`;
+    }
+};
+
+window.adminRenderUsersTable = (users) => {
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (!tbody) return;
+    if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:20px;">Tidak ada pengguna ditemukan.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = users.map(u => {
+        const roleBadgeClass = u.role_id === 'super-admin' ? 'badge-super-admin' : (u.role_id === 'host' ? 'badge-host' : 'badge-player');
+        const statusBadgeClass = u.is_active ? 'badge-active' : 'badge-inactive';
+        const statusText = u.is_active ? 'Aktif' : 'Nonaktif';
+        const toggleLabel = u.is_active ? 'Nonaktifkan' : 'Aktifkan';
+        const toggleColor = u.is_active ? 'admin-btn-danger' : 'admin-btn-primary';
+
+        return `
+            <tr>
+              <td>
+                <div style="font-weight:700; color:var(--navy);">${u.full_name || 'Tanpa Nama'}</div>
+                <div style="font-size:11px; color:var(--muted);">${u.email}</div>
+              </td>
+              <td><span class="admin-badge ${roleBadgeClass}">${u.role_id}</span></td>
+              <td><span class="admin-badge ${statusBadgeClass}">${statusText}</span></td>
+              <td><b>${u.handicap_index || (u.personal?.handicap) || '0.0'}</b></td>
+              <td style="text-align:right;">
+                <button class="admin-btn-sm admin-btn-gold" style="margin-right:4px;" onclick="window.adminPromptChangeRole('${u.id}', '${u.email}', '${u.role_id}')">Role</button>
+                <button class="admin-btn-sm ${toggleColor}" onclick="window.adminToggleUserStatus('${u.id}', ${u.is_active})">${toggleLabel}</button>
+              </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.adminFilterUsers = (keyword) => {
+    const q = (keyword || '').toLowerCase().trim();
+    if (!q) {
+        window.adminRenderUsersTable(window.cachedUsers);
+        return;
+    }
+    const filtered = window.cachedUsers.filter(u => 
+        (u.email && u.email.toLowerCase().includes(q)) || 
+        (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+        (u.role_id && u.role_id.toLowerCase().includes(q))
+    );
+    window.adminRenderUsersTable(filtered);
+};
+
+window.adminToggleUserStatus = async (userId, currentStatus) => {
+    const newStatus = !currentStatus;
+    const actionText = newStatus ? "mengaktifkan kembali" : "menonaktifkan (suspend)";
+    window.sysConfirm(`Yakin ingin ${actionText} akun ini?`, async () => {
+        try {
+            const startTime = Date.now();
+            const { error } = await supabase
+                .from('user_profiles')
+                .update({ is_active: newStatus, updated_at: new Date().toISOString() })
+                .eq('id', userId);
+
+            if (error) throw error;
+
+            window.recordAuditLog('PUT', 200, '/admin/users/status', currentUser?.id, window.currentUserRole, 'USER_STATUS_TOGGLED', `Mengubah status user ${userId} menjadi ${newStatus ? 'ACTIVE' : 'INACTIVE'}`, Date.now() - startTime);
+            window.sysAlert(`Akun berhasil di-${newStatus ? 'aktifkan' : 'nonaktifkan'}!`, "Status Diperbarui", "✅");
+            window.adminLoadUsers();
+        } catch(err) {
+            window.sysAlert("Gagal mengubah status: " + err.message, "Error", "❌");
+        }
+    }, "Konfirmasi Status", "⚠️", newStatus ? "modal-btn-confirm" : "modal-btn-danger");
+};
+
+window.adminPromptChangeRole = (userId, email, currentRole) => {
+    window.sysConfirm(`
+        <div style="text-align:left; margin-bottom:12px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Pilih Peran (Role) untuk <b>${email}</b>:</div>
+            <select id="adminNewRoleSelect" class="admin-input-sm" style="font-weight:700;">
+                <option value="player" ${currentRole === 'player' ? 'selected' : ''}>player (Regular Player)</option>
+                <option value="host" ${currentRole === 'host' ? 'selected' : ''}>host (Tournament Host)</option>
+                <option value="super-admin" ${currentRole === 'super-admin' ? 'selected' : ''}>super-admin (Super Administrator)</option>
+            </select>
+        </div>
+    `, async () => {
+        const newRole = document.getElementById('adminNewRoleSelect').value;
+        if (!newRole) return;
+        try {
+            const startTime = Date.now();
+            const { error } = await supabase
+                .from('user_roles')
+                .upsert({ user_id: userId, role_id: newRole, assigned_by: currentUser?.id, assigned_at: new Date().toISOString() });
+
+            if (error) throw error;
+
+            // Jika super-admin, pastikan is_premium = true
+            if (newRole === 'super-admin') {
+                await supabase.from('user_profiles').update({ is_premium: true }).eq('id', userId);
+            }
+
+            window.recordAuditLog('POST', 200, '/admin/users/role', currentUser?.id, window.currentUserRole, 'USER_ROLE_ASSIGNED', `Mengubah role ${email} menjadi ${newRole}`, Date.now() - startTime);
+            window.sysAlert(`Role ${email} berhasil diubah menjadi <b>${newRole}</b>!`, "Role Diperbarui", "🎉");
+            window.adminLoadUsers();
+        } catch(err) {
+            window.sysAlert("Gagal mengubah role: " + err.message, "Error", "❌");
+        }
+    }, "Ubah Peran Pengguna", "🛡️", "modal-btn-gold");
+};
+
+window.adminShowCreateUserModal = () => {
+    window.sysConfirm(`
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size:11px; font-weight:700; color:var(--muted);">Alamat Email:</label>
+            <input type="email" id="modalNewUserEmail" class="admin-input-sm" placeholder="user@domain.com">
+            <label style="font-size:11px; font-weight:700; color:var(--muted);">Kata Sandi (min. 6 karakter):</label>
+            <input type="password" id="modalNewUserPass" class="admin-input-sm" placeholder="••••••••">
+            <label style="font-size:11px; font-weight:700; color:var(--muted);">Peran Awal (RBAC):</label>
+            <select id="modalNewUserRole" class="admin-input-sm">
+                <option value="player">player (Regular Player)</option>
+                <option value="host">host (Tournament Host)</option>
+                <option value="super-admin">super-admin (Super Administrator)</option>
+            </select>
+        </div>
+    `, async () => {
+        const email = document.getElementById('modalNewUserEmail').value.trim();
+        const pass = document.getElementById('modalNewUserPass').value;
+        const role = document.getElementById('modalNewUserRole').value;
+        if (!email || !pass || pass.length < 6) {
+            window.sysAlert("Email dan password (min 6 karakter) wajib diisi!", "Info", "⚠️");
+            return;
+        }
+
+        try {
+            const startTime = Date.now();
+            const { data, error } = await supabase.auth.signUp({ email, password: pass });
+            if (error) throw error;
+
+            if (data?.user) {
+                // Buat record profile & role
+                await supabase.from('user_profiles').upsert({
+                    id: data.user.id,
+                    email: email,
+                    full_name: email.split('@')[0],
+                    is_active: true,
+                    is_premium: (role === 'super-admin')
+                });
+                await supabase.from('user_roles').upsert({
+                    user_id: data.user.id,
+                    role_id: role,
+                    assigned_by: currentUser?.id
+                });
+            }
+
+            window.recordAuditLog('POST', 201, '/admin/users/create', currentUser?.id, window.currentUserRole, 'USER_CREATED_BY_ADMIN', `Admin mendaftarkan user ${email} dengan role ${role}`, Date.now() - startTime);
+            window.sysAlert(`User <b>${email}</b> berhasil didaftarkan!`, "Pendaftaran Sukses", "✅");
+            window.adminLoadUsers();
+        } catch(err) {
+            window.sysAlert("Gagal mendaftarkan user: " + err.message, "Error", "❌");
+        }
+    }, "Tambah Pengguna Baru", "👤", "modal-btn-confirm");
+};
+
+// --- MODUL 2: GLOBAL AUDIT LOGS (POIN 11 SOP) ---
+window.adminLoadAuditLogs = async () => {
+    const tbody = document.getElementById('adminAuditTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Memuat riwayat log...</td></tr>';
+
+    try {
+        if (!supabase) throw new Error("Database belum terhubung");
+        const { data, error } = await supabase
+            .from('global_audit_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Belum ada log audit tercatat.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(log => {
+            const dateStr = new Date(log.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' });
+            const methodBadge = `<span style="font-weight:800; font-size:10px; padding:2px 6px; border-radius:4px; background:#e8edf5; color:var(--navy);">${log.method}</span>`;
+            const statusColor = log.status_code >= 400 ? 'var(--red)' : 'var(--green2)';
+
+            return `
+                <tr>
+                  <td style="white-space:nowrap; font-size:11px; color:var(--muted);">${dateStr}</td>
+                  <td>${methodBadge}</td>
+                  <td>
+                    <div style="font-weight:700; color:var(--navy);">${log.action_name || 'ACTION'}</div>
+                    <div style="font-size:11px; color:var(--muted);">${log.endpoint_path}</div>
+                    ${log.payload_summary ? `<div style="font-size:10px; color:#666; font-style:italic;">${log.payload_summary}</div>` : ''}
+                  </td>
+                  <td>
+                    <span class="admin-badge ${log.user_role === 'super-admin' ? 'badge-super-admin' : 'badge-host'}">${log.user_role || 'guest'}</span>
+                  </td>
+                  <td><b style="color:${statusColor};">${log.status_code}</b></td>
+                  <td style="font-size:11px; color:var(--muted);">${log.duration_ms}ms</td>
+                </tr>
+            `;
+        }).join('');
+    } catch(err) {
+        console.error("adminLoadAuditLogs error:", err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--red2); padding:20px;">Gagal memuat log audit: ${err.message}</td></tr>`;
+    }
+};
+
+// --- MODUL 3: SITE CONFIGURATION (POIN 8a SOP) ---
+window.adminLoadSiteConfigs = async () => {
+    const list = document.getElementById('adminConfigList');
+    if (!list) return;
+    list.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Memuat konfigurasi situs...</div>';
+
+    try {
+        if (!supabase) throw new Error("Database belum terhubung");
+        const { data, error } = await supabase
+            .from('site_configurations')
+            .select('*')
+            .order('config_key', { ascending: true });
+
+        if (error) throw error;
+
+        window.cachedSiteConfigs = data || [];
+        if (window.cachedSiteConfigs.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Belum ada data konfigurasi di database.</div>';
+            return;
+        }
+
+        list.innerHTML = window.cachedSiteConfigs.map(c => `
+            <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-family:monospace; font-weight:800; color:var(--navy); font-size:13px;">${c.config_key}</span>
+                <span style="font-size:10px; color:var(--muted); text-transform:uppercase;">${c.data_type}</span>
+              </div>
+              <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">${c.description || 'Tidak ada deskripsi'}</div>
+              <input type="text" id="cfg_input_${c.config_key}" class="admin-input-sm" value="${c.config_value}">
+            </div>
+        `).join('');
+    } catch(err) {
+        console.error("adminLoadSiteConfigs error:", err);
+        list.innerHTML = `<div style="text-align:center; color:var(--red2); padding:20px;">Gagal memuat konfigurasi: ${err.message}</div>`;
+    }
+};
+
+window.adminSaveSiteConfigs = async () => {
+    if (!window.cachedSiteConfigs || window.cachedSiteConfigs.length === 0) return;
+    try {
+        const startTime = Date.now();
+        for (const c of window.cachedSiteConfigs) {
+            const input = document.getElementById(`cfg_input_${c.config_key}`);
+            if (input) {
+                const newVal = input.value.trim();
+                if (newVal !== c.config_value) {
+                    await supabase
+                        .from('site_configurations')
+                        .update({ config_value: newVal, updated_at: new Date().toISOString(), updated_by: currentUser?.id })
+                        .eq('config_key', c.config_key);
+                    c.config_value = newVal;
+                }
+            }
+        }
+        window.recordAuditLog('PUT', 200, '/admin/configurations', currentUser?.id, window.currentUserRole, 'SITE_CONFIGS_SAVED', 'Memperbarui parameter konfigurasi situs', Date.now() - startTime);
+        window.sysAlert("Seluruh konfigurasi berhasil disimpan ke database!", "Tersimpan", "💾");
+    } catch(err) {
+        window.sysAlert("Gagal menyimpan konfigurasi: " + err.message, "Error", "❌");
+    }
+};
+
+// --- MODUL 4: DYNAMIC RBAC (POIN 8a & 9 SOP) ---
+window.adminLoadRbac = async () => {
+    const container = document.getElementById('adminRbacMatrix');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Memuat data matriks RBAC...</div>';
+
+    try {
+        if (!supabase) throw new Error("Database belum terhubung");
+        const [rolesRes, permsRes, rolePermsRes] = await Promise.all([
+            supabase.from('roles').select('*'),
+            supabase.from('permissions').select('*'),
+            supabase.from('role_permissions').select('*')
+        ]);
+
+        const roles = rolesRes.data || [];
+        const perms = permsRes.data || [];
+        const rolePerms = rolePermsRes.data || [];
+
+        container.innerHTML = roles.map(r => {
+            const grantedPermIds = rolePerms.filter(rp => rp.role_id === r.id).map(rp => rp.permission_id);
+            return `
+                <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div>
+                      <span class="admin-badge ${r.id === 'super-admin' ? 'badge-super-admin' : (r.id === 'host' ? 'badge-host' : 'badge-player')}" style="font-size:12px;">${r.id}</span>
+                      <span style="font-weight:700; color:var(--navy); margin-left:8px;">${r.name}</span>
+                    </div>
+                    <span style="font-size:11px; color:var(--muted);">${grantedPermIds.length} Permissions</span>
+                  </div>
+                  <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">${r.description}</div>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    ${perms.map(p => {
+                        const isGranted = grantedPermIds.includes(p.id);
+                        return `
+                            <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; border:1px solid ${isGranted ? '#bbf7d0' : '#e2e8f0'}; background:${isGranted ? '#f0fdf4' : '#f8fafc'}; color:${isGranted ? '#166534' : '#94a3b8'};">
+                                ${isGranted ? '✓' : '✗'} ${p.id}
+                            </span>
+                        `;
+                    }).join('')}
+                  </div>
+                </div>
+            `;
+        }).join('');
+    } catch(err) {
+        console.error("adminLoadRbac error:", err);
+        container.innerHTML = `<div style="text-align:center; color:var(--red2); padding:20px;">Gagal memuat RBAC: ${err.message}</div>`;
+    }
 };
 
 window.openMode = (mode) => {
@@ -1606,6 +2034,42 @@ async function loadUserData(uid) {
             .eq('id', uid)
             .maybeSingle();
 
+        // 1. Cek User Role via user_roles atau super-admin email
+        try {
+            const { data: rolesData } = await supabase
+                .from('user_roles')
+                .select('role_id')
+                .eq('user_id', uid);
+            if (rolesData && rolesData.length > 0) {
+                window.currentUserRole = rolesData[0].role_id;
+            } else {
+                const superEmails = ['alfin.armadani@sugity.co.id', '4lfin.armadani@gmail.com'];
+                if (currentUser && superEmails.includes(currentUser.email?.toLowerCase())) {
+                    window.currentUserRole = 'super-admin';
+                } else {
+                    window.currentUserRole = 'player';
+                }
+            }
+        } catch(rErr) {
+            console.warn("Role fetch warning:", rErr);
+            window.currentUserRole = 'player';
+        }
+
+        // Tampilkan/sembunyikan card admin di dashboard
+        const adminCard = document.getElementById('superAdminCard');
+        if (adminCard) {
+            adminCard.style.display = (window.currentUserRole === 'super-admin') ? 'flex' : 'none';
+        }
+
+        // 2. Cek status aktif akun (User Management - Poin 10 SOP)
+        if (data && data.is_active === false) {
+            window.sysAlert("Akun Anda telah dinonaktifkan oleh Administrator.", "Akses Ditangguhkan", "🚫");
+            localStorage.removeItem('golfsync_current_user');
+            if (supabase?.auth) await supabase.auth.signOut();
+            window.showScreen('view-login');
+            return;
+        }
+
         if (error) {
             console.error("Profile load error:", error);
             setSyncStatus("error", "🔴 DB Error");
@@ -1613,7 +2077,7 @@ async function loadUserData(uid) {
         }
 
         if (data) {
-            isPremium = data.is_premium || false;
+            isPremium = data.is_premium || (window.currentUserRole === 'super-admin');
             window.personalData = data.personal || { handicap: 0, history: [], driving: [], linkedPlayers: {}, recentTournaments: [] };
             if (!window.personalData.linkedPlayers) window.personalData.linkedPlayers = {};
             if (!window.personalData.recentTournaments) window.personalData.recentTournaments = [];
@@ -1865,12 +2329,16 @@ window.updateLinkedHistory = () => {
 window.saveLiveUpdate = async (updates) => {
     if (!window.currentLiveTourId) return;
     try {
+        const startTime = Date.now();
         const { error } = await supabase
             .from('shared_tournaments')
             .update(updates)
             .eq('code', window.currentLiveTourId);
         if (error) {
             console.error("Supabase Live Update Error:", error);
+        } else {
+            const keys = Object.keys(updates).join(', ');
+            window.recordAuditLog('PATCH', 200, `/tournaments/${window.currentLiveTourId}`, currentUser?.id, window.currentUserRole, 'TOURNAMENT_MUTATION', `Update ${keys} pada room ${window.currentLiveTourId}`, Date.now() - startTime);
         }
     } catch (e) {
         console.error("Live Update Exception:", e);
